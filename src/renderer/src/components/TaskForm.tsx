@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useTasks, useClaudeCli } from '../hooks/useApi'
+import { useTasks, useClaudeCli, useGeminiCli, useCodexCli } from '../hooks/useApi'
 import type { Task, CreateTaskInput, McpServer, ModelType } from '../../../shared/types'
 import { RefreshCw, Sun, Calendar, CalendarDays } from 'lucide-react'
 
@@ -166,7 +166,10 @@ function getScheduleDescription(
 
 export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
   const { createTask, updateTask } = useTasks()
-  const { listMcps } = useClaudeCli()
+  const { listMcps: listClaudeMcps } = useClaudeCli()
+  const { listMcps: listGeminiMcps } = useGeminiCli()
+  const { listMcps: listCodexMcps } = useCodexCli()
+  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mcpServers, setMcpServers] = useState<McpServer[]>([])
@@ -191,6 +194,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
     description: task?.description || '',
     cron_expression: task?.cron_expression || '0 9 * * *',
     prompt: task?.prompt || '',
+    cli_tool: (task?.cli_tool || 'claude') as 'claude' | 'gemini' | 'codex',
     model: (task?.model || 'sonnet') as ModelType,
     mcp_tools: task?.mcp_tools ? JSON.parse(task.mcp_tools) : [] as string[],
     attachments: task?.attachments ? JSON.parse(task.attachments) : [] as string[],
@@ -226,17 +230,25 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
     const fetchMcps = async () => {
       setLoadingMcps(true)
       try {
-        const servers = await listMcps()
+        let servers: McpServer[] = []
+        if (formData.cli_tool === 'claude') {
+          servers = await listClaudeMcps()
+        } else if (formData.cli_tool === 'gemini') {
+          servers = await listGeminiMcps()
+        } else if (formData.cli_tool === 'codex') {
+          servers = await listCodexMcps()
+        }
         setMcpServers(servers)
       } catch (err) {
-        console.error('Failed to fetch MCP servers:', err)
+        console.error(`Failed to fetch MCP servers for ${formData.cli_tool}:`, err)
+        setMcpServers([])
       } finally {
         setLoadingMcps(false)
       }
     }
 
     fetchMcps()
-  }, [listMcps])
+  }, [formData.cli_tool, listClaudeMcps, listGeminiMcps, listCodexMcps])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -249,6 +261,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
         description: formData.description || undefined,
         cron_expression: formData.cron_expression,
         prompt: formData.prompt,
+        cli_tool: formData.cli_tool,
         model: formData.model,
         mcp_tools: formData.mcp_tools.length > 0 ? formData.mcp_tools : undefined,
         attachments: formData.attachments.length > 0 ? formData.attachments : undefined,
@@ -589,42 +602,105 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
               />
             </div>
 
-            {/* Model Selection */}
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">
-                AI Model
-              </label>
-              <div className="flex gap-2">
-                {([
-                  { value: 'haiku', label: 'Haiku', desc: 'Fast' },
-                  { value: 'sonnet', label: 'Sonnet', desc: 'Balanced' },
-                  { value: 'opus', label: 'Opus', desc: 'Powerful' }
-                ] as const).map((model) => (
-                  <label
-                    key={model.value}
-                    className={`flex-1 flex flex-col items-center p-2.5 border rounded-lg cursor-pointer transition-all ${
-                      formData.model === model.value
-                        ? 'bg-violet-50 border-violet-300 text-violet-700 shadow-sm'
-                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="model"
-                      value={model.value}
-                      checked={formData.model === model.value}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          model: e.target.value as ModelType
-                        }))
-                      }
-                      className="sr-only"
-                    />
-                    <span className="font-medium text-sm">{model.label}</span>
-                    <span className="text-[10px] opacity-70">{model.desc}</span>
-                  </label>
-                ))}
+            {/* AI Provider & Model */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-2">
+                  AI Provider
+                </label>
+                <div className="flex gap-2">
+                  {[
+                    { value: 'claude', label: 'Claude' },
+                    { value: 'gemini', label: 'Gemini' },
+                    { value: 'codex', label: 'Codex' }
+                  ].map((tool) => (
+                    <label
+                      key={tool.value}
+                      className={`flex-1 flex items-center justify-center p-2.5 border rounded-lg cursor-pointer transition-all ${
+                        formData.cli_tool === tool.value
+                          ? 'bg-violet-50 border-violet-300 text-violet-700 shadow-sm'
+                          : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="cli_tool"
+                        value={tool.value}
+                        checked={formData.cli_tool === tool.value}
+                        onChange={(e) => {
+                          const tool = e.target.value as 'claude' | 'gemini' | 'codex'
+                          let defaultModel: ModelType = 'sonnet'
+                          if (tool === 'gemini') defaultModel = 'gemini-3'
+                          if (tool === 'codex') defaultModel = 'codex-default'
+                          
+                          setFormData((prev) => ({
+                            ...prev,
+                            cli_tool: tool,
+                            model: defaultModel,
+                            mcp_tools: [] // Clear selected tools when provider changes
+                          }))
+                        }}
+                        className="sr-only"
+                      />
+                      <span className="font-medium text-sm">{tool.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-2">
+                  AI Model
+                </label>
+                <div className="flex gap-2">
+                  {(() => {
+                    let models: { value: ModelType, label: string, desc: string }[] = []
+                    
+                    if (formData.cli_tool === 'claude') {
+                      models = [
+                        { value: 'haiku', label: 'Haiku', desc: 'Fast' },
+                        { value: 'sonnet', label: 'Sonnet', desc: 'Balanced' },
+                        { value: 'opus', label: 'Opus', desc: 'Powerful' }
+                      ]
+                    } else if (formData.cli_tool === 'gemini') {
+                      models = [
+                        { value: 'gemini-3', label: 'Auto (Gemini 3)', desc: 'Best for task (3-pro/3-flash)' },
+                        { value: 'gemini-2.5', label: 'Auto (Gemini 2.5)', desc: 'Best for task (2.5-pro/2.5-flash)' }
+                      ]
+                    } else if (formData.cli_tool === 'codex') {
+                      models = [
+                        { value: 'codex-default', label: 'Default', desc: 'Standard' }
+                      ]
+                    }
+
+                    return models.map((model) => (
+                      <label
+                        key={model.value}
+                        className={`flex-1 flex flex-col items-center p-2.5 border rounded-lg cursor-pointer transition-all ${
+                          formData.model === model.value
+                            ? 'bg-violet-50 border-violet-300 text-violet-700 shadow-sm'
+                            : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="model"
+                          value={model.value}
+                          checked={formData.model === model.value}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              model: e.target.value as ModelType
+                            }))
+                          }
+                          className="sr-only"
+                        />
+                        <span className="font-medium text-sm">{model.label}</span>
+                        <span className="text-[10px] opacity-70">{model.desc}</span>
+                      </label>
+                    ))
+                  })()}
+                </div>
               </div>
             </div>
 
@@ -666,7 +742,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                 </div>
               ) : (
                 <p className="text-xs text-gray-400">
-                  No MCP servers configured in Claude CLI
+                  No MCP servers configured in {formData.cli_tool} CLI
                 </p>
               )}
             </div>

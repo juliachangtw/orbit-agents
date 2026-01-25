@@ -24,6 +24,8 @@ import {
   onExecutionUpdate
 } from './scheduler'
 import { testClaudeConnection, listMcpServers } from './claude-cli'
+import { testGeminiConnection, listMcpServers as listGeminiMcpServers } from './gemini-cli'
+import { testCodexConnection, listMcpServers as listCodexMcpServers } from './codex-cli'
 import { resetTransporter, sendTestEmail } from './email'
 import type {
   CreateTaskInput,
@@ -139,6 +141,24 @@ function registerIpcHandlers(): void {
 
   ipcMain.handle('claude:list-mcps', async () => {
     return listMcpServers()
+  })
+
+  // Gemini CLI handlers
+  ipcMain.handle('gemini:test', async () => {
+    return testGeminiConnection()
+  })
+
+  ipcMain.handle('gemini:list-mcps', async () => {
+    return listGeminiMcpServers()
+  })
+
+  // Codex CLI handlers
+  ipcMain.handle('codex:test', async () => {
+    return testCodexConnection()
+  })
+
+  ipcMain.handle('codex:list-mcps', async () => {
+    return listCodexMcpServers()
   })
 
   // File dialog handler

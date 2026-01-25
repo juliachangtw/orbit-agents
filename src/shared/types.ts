@@ -1,5 +1,5 @@
 // Task Types
-export type ModelType = 'sonnet' | 'opus' | 'haiku'
+export type ModelType = 'sonnet' | 'opus' | 'haiku' | 'gemini-3' | 'gemini-2.5' | 'codex-default'
 
 export interface Task {
   id: string
@@ -7,6 +7,7 @@ export interface Task {
   description: string | null
   cron_expression: string
   prompt: string
+  cli_tool: 'claude' | 'gemini' | 'codex'
   model: ModelType | null // AI model to use
   mcp_tools: string | null // JSON array of tool patterns
   attachments: string | null // JSON array of file paths
@@ -22,6 +23,7 @@ export interface CreateTaskInput {
   description?: string
   cron_expression: string
   prompt: string
+  cli_tool?: 'claude' | 'gemini' | 'codex'
   model?: ModelType
   mcp_tools?: string[]
   attachments?: string[] // Array of file paths
@@ -58,12 +60,27 @@ export interface Settings {
   email_from?: string
   claude_cli_path?: string
   claude_session_token?: string
+  gemini_cli_path?: string
+  gemini_api_key?: string
+  codex_cli_path?: string
 }
 
 export type SettingKey = keyof Settings
 
 // Claude CLI Types
 export interface ClaudeCliResult {
+  success: boolean
+  output: string
+  error?: string
+}
+
+export interface GeminiCliResult {
+  success: boolean
+  output: string
+  error?: string
+}
+
+export interface CodexCliResult {
   success: boolean
   output: string
   error?: string
@@ -96,6 +113,14 @@ export interface IpcApi {
   // Claude CLI operations
   'claude:test': () => Promise<ClaudeCliResult>
   'claude:list-mcps': () => Promise<McpServer[]>
+
+  // Gemini CLI operations
+  'gemini:test': () => Promise<GeminiCliResult>
+  'gemini:list-mcps': () => Promise<McpServer[]>
+
+  // Codex CLI operations
+  'codex:test': () => Promise<CodexCliResult>
+  'codex:list-mcps': () => Promise<McpServer[]>
 }
 
 // For preload

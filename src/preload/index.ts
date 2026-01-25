@@ -23,6 +23,10 @@ const api: ElectronApi = {
       'settings:test-email',
       'claude:test',
       'claude:list-mcps',
+      'gemini:test',
+      'gemini:list-mcps',
+      'codex:test',
+      'codex:list-mcps',
       'dialog:open-files'
     ]
 

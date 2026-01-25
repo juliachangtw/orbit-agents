@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useSettings, useClaudeCli } from '../hooks/useApi'
-import type { ClaudeCliResult } from '../../../shared/types'
+import { useSettings, useClaudeCli, useGeminiCli, useCodexCli } from '../hooks/useApi'
+import type { ClaudeCliResult, GeminiCliResult, CodexCliResult } from '../../../shared/types'
 
 interface SettingsProps {
   onUnsavedChange?: (hasUnsaved: boolean) => void
@@ -8,7 +8,10 @@ interface SettingsProps {
 
 export default function Settings({ onUnsavedChange }: SettingsProps) {
   const { settings, loading, updateSettings, testEmail } = useSettings()
-  const { testConnection } = useClaudeCli()
+  const { testConnection: testClaude } = useClaudeCli()
+  const { testConnection: testGemini } = useGeminiCli()
+  const { testConnection: testCodex } = useCodexCli()
+  
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   const [formData, setFormData] = useState({
@@ -18,13 +21,24 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
     email_smtp_pass: '',
     email_from: '',
     claude_cli_path: '',
-    claude_session_token: ''
+    claude_session_token: '',
+    gemini_cli_path: '',
+    gemini_api_key: '',
+    codex_cli_path: ''
   })
 
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  
   const [testingClaude, setTestingClaude] = useState(false)
   const [claudeResult, setClaudeResult] = useState<ClaudeCliResult | null>(null)
+  
+  const [testingGemini, setTestingGemini] = useState(false)
+  const [geminiResult, setGeminiResult] = useState<GeminiCliResult | null>(null)
+  
+  const [testingCodex, setTestingCodex] = useState(false)
+  const [codexResult, setCodexResult] = useState<CodexCliResult | null>(null)
+
   const [testingEmail, setTestingEmail] = useState(false)
   const [emailResult, setEmailResult] = useState<{ success: boolean; message: string } | null>(null)
   const [testEmailAddress, setTestEmailAddress] = useState('')
@@ -38,7 +52,10 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
         email_smtp_pass: settings.email_smtp_pass || '',
         email_from: settings.email_from || '',
         claude_cli_path: settings.claude_cli_path || '',
-        claude_session_token: settings.claude_session_token || ''
+        claude_session_token: settings.claude_session_token || '',
+        gemini_cli_path: settings.gemini_cli_path || '',
+        gemini_api_key: settings.gemini_api_key || '',
+        codex_cli_path: settings.codex_cli_path || ''
       })
       setHasUnsavedChanges(false)
     }
@@ -54,7 +71,10 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
       formData.email_smtp_pass !== (settings.email_smtp_pass || '') ||
       formData.email_from !== (settings.email_from || '') ||
       formData.claude_cli_path !== (settings.claude_cli_path || '') ||
-      formData.claude_session_token !== (settings.claude_session_token || '')
+      formData.claude_session_token !== (settings.claude_session_token || '') ||
+      formData.gemini_cli_path !== (settings.gemini_cli_path || '') ||
+      formData.gemini_api_key !== (settings.gemini_api_key || '') ||
+      formData.codex_cli_path !== (settings.codex_cli_path || '')
     )
   }, [formData, settings])
 
@@ -84,7 +104,7 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
     setTestingClaude(true)
     setClaudeResult(null)
     try {
-      const result = await testConnection()
+      const result = await testClaude()
       setClaudeResult(result)
     } catch (err) {
       setClaudeResult({
@@ -94,6 +114,40 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
       })
     } finally {
       setTestingClaude(false)
+    }
+  }
+
+  const handleTestGemini = async () => {
+    setTestingGemini(true)
+    setGeminiResult(null)
+    try {
+      const result = await testGemini()
+      setGeminiResult(result)
+    } catch (err) {
+      setGeminiResult({
+        success: false,
+        output: '',
+        error: err instanceof Error ? err.message : 'Unknown error'
+      })
+    } finally {
+      setTestingGemini(false)
+    }
+  }
+
+  const handleTestCodex = async () => {
+    setTestingCodex(true)
+    setCodexResult(null)
+    try {
+      const result = await testCodex()
+      setCodexResult(result)
+    } catch (err) {
+      setCodexResult({
+        success: false,
+        output: '',
+        error: err instanceof Error ? err.message : 'Unknown error'
+      })
+    } finally {
+      setTestingCodex(false)
     }
   }
 
@@ -196,6 +250,117 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
             {claudeResult && (
               <span className={`text-xs ${claudeResult.success ? 'text-emerald-600' : 'text-red-600'}`}>
                 {claudeResult.success ? claudeResult.output : claudeResult.error}
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Gemini CLI Settings */}
+      <section className="bg-gray-50/50 rounded-xl border border-gray-200/60 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+            <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+          </div>
+          <h3 className="text-sm font-semibold text-gray-900">Gemini CLI</h3>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              CLI Path
+            </label>
+            <input
+              type="text"
+              value={formData.gemini_cli_path}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, gemini_cli_path: e.target.value }))
+              }
+              placeholder="Leave empty for default"
+              className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              API Key <span className="text-gray-400 font-normal">(Optional if configured in env)</span>
+            </label>
+            <input
+              type="password"
+              value={formData.gemini_api_key}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, gemini_api_key: e.target.value }))
+              }
+              placeholder="GEMINI_API_KEY"
+              className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors font-mono"
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleTestGemini}
+              disabled={testingGemini}
+              className="px-3 py-1.5 text-xs font-medium text-teal-600 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 disabled:opacity-50 flex items-center gap-1.5 transition-colors"
+            >
+              {testingGemini && (
+                <div className="animate-spin rounded-full h-3 w-3 border-2 border-teal-600 border-t-transparent"></div>
+              )}
+              Test Connection
+            </button>
+
+            {geminiResult && (
+              <span className={`text-xs ${geminiResult.success ? 'text-emerald-600' : 'text-red-600'}`}>
+                {geminiResult.success ? geminiResult.output : geminiResult.error}
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Codex CLI Settings */}
+      <section className="bg-gray-50/50 rounded-xl border border-gray-200/60 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+          </div>
+          <h3 className="text-sm font-semibold text-gray-900">Codex CLI</h3>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              CLI Path
+            </label>
+            <input
+              type="text"
+              value={formData.codex_cli_path}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, codex_cli_path: e.target.value }))
+              }
+              placeholder="Leave empty for default"
+              className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleTestCodex}
+              disabled={testingCodex}
+              className="px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 disabled:opacity-50 flex items-center gap-1.5 transition-colors"
+            >
+              {testingCodex && (
+                <div className="animate-spin rounded-full h-3 w-3 border-2 border-indigo-600 border-t-transparent"></div>
+              )}
+              Test Connection
+            </button>
+
+            {codexResult && (
+              <span className={`text-xs ${codexResult.success ? 'text-emerald-600' : 'text-red-600'}`}>
+                {codexResult.success ? codexResult.output : codexResult.error}
               </span>
             )}
           </div>

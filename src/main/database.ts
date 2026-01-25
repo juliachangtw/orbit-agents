@@ -75,6 +75,13 @@ export function initDatabase(): Database.Database {
     // Column already exists, ignore
   }
 
+  // Migration: Add cli_tool column if not exists
+  try {
+    db.exec(`ALTER TABLE tasks ADD COLUMN cli_tool TEXT DEFAULT 'claude'`)
+  } catch {
+    // Column already exists, ignore
+  }
+
   return db
 }
 
@@ -113,6 +120,7 @@ export function createTask(input: CreateTaskInput): Task {
     description: input.description ?? null,
     cron_expression: input.cron_expression,
     prompt: input.prompt,
+    cli_tool: input.cli_tool ?? 'claude',
     model: input.model ?? 'sonnet',
     mcp_tools: input.mcp_tools ? JSON.stringify(input.mcp_tools) : null,
     attachments: input.attachments ? JSON.stringify(input.attachments) : null,
@@ -124,8 +132,8 @@ export function createTask(input: CreateTaskInput): Task {
   }
 
   db.prepare(`
-    INSERT INTO tasks (id, name, description, cron_expression, prompt, model, mcp_tools, attachments, output_type, email_to, enabled, created_at, updated_at)
-    VALUES (@id, @name, @description, @cron_expression, @prompt, @model, @mcp_tools, @attachments, @output_type, @email_to, @enabled, @created_at, @updated_at)
+    INSERT INTO tasks (id, name, description, cron_expression, prompt, cli_tool, model, mcp_tools, attachments, output_type, email_to, enabled, created_at, updated_at)
+    VALUES (@id, @name, @description, @cron_expression, @prompt, @cli_tool, @model, @mcp_tools, @attachments, @output_type, @email_to, @enabled, @created_at, @updated_at)
   `).run(task)
 
   return task
@@ -147,6 +155,7 @@ export function updateTask(input: UpdateTaskInput): Task {
     description: input.description !== undefined ? (input.description ?? null) : existing.description,
     cron_expression: input.cron_expression ?? existing.cron_expression,
     prompt: input.prompt ?? existing.prompt,
+    cli_tool: input.cli_tool ?? existing.cli_tool,
     model: input.model ?? existing.model,
     mcp_tools: input.mcp_tools !== undefined
       ? (input.mcp_tools ? JSON.stringify(input.mcp_tools) : null)
@@ -166,6 +175,7 @@ export function updateTask(input: UpdateTaskInput): Task {
       description = @description,
       cron_expression = @cron_expression,
       prompt = @prompt,
+      cli_tool = @cli_tool,
       model = @model,
       mcp_tools = @mcp_tools,
       attachments = @attachments,

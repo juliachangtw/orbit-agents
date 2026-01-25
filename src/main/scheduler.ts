@@ -27,8 +27,10 @@ function isBinaryFile(filePath: string): boolean {
   return BINARY_EXTENSIONS.has(ext)
 }
 import { executeClaudeCli } from './claude-cli'
+import { executeGeminiCli } from './gemini-cli'
+import { executeCodexCli } from './codex-cli'
 import { sendTaskResultEmail } from './email'
-import type { Task, ExecutionLog } from '../shared/types'
+import type { Task, ExecutionLog, ClaudeCliResult, GeminiCliResult, CodexCliResult } from '../shared/types'
 
 // Store active cron jobs
 const activeJobs: Map<string, ScheduledTask> = new Map()
@@ -127,14 +129,13 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
       }
     }
 
-    console.log(`[Scheduler] Calling Claude CLI with prompt length: ${promptWithTextFiles.length}, model: ${task.model || 'default'}, binary attachments: ${binaryAttachments?.length || 0}`)
+    console.log(`[Scheduler] Calling ${task.cli_tool || 'claude'} CLI with prompt length: ${promptWithTextFiles.length}, model: ${task.model || 'default'}, binary attachments: ${binaryAttachments?.length || 0}`)
 
     // Throttle output updates to avoid too many DB writes
     let lastUpdateTime = 0
     const UPDATE_INTERVAL = 2000 // Update every 2 seconds max
 
-    // Execute Claude CLI with model, streaming callback, and binary attachments
-    const result = await executeClaudeCli(promptWithTextFiles, mcpTools, task.model, (partialOutput) => {
+    const onOutput = (partialOutput: string) => {
       const now = Date.now()
       if (now - lastUpdateTime > UPDATE_INTERVAL) {
         lastUpdateTime = now
@@ -142,8 +143,20 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
         const updatedLog = updateExecutionLogOutput(log.id, partialOutput)
         notifyExecutionUpdate(updatedLog)
       }
-    }, binaryAttachments)
-    console.log(`[Scheduler] Claude CLI result: success=${result.success}, output length=${result.output?.length || 0}`)
+    }
+
+    let result: ClaudeCliResult | GeminiCliResult | CodexCliResult
+
+    if (task.cli_tool === 'gemini') {
+      result = await executeGeminiCli(promptWithTextFiles, task.model, onOutput, binaryAttachments, mcpTools)
+    } else if (task.cli_tool === 'codex') {
+      result = await executeCodexCli(promptWithTextFiles, task.model, onOutput, binaryAttachments, mcpTools)
+    } else {
+      // Default to Claude
+      result = await executeClaudeCli(promptWithTextFiles, mcpTools, task.model, onOutput, binaryAttachments)
+    }
+
+    console.log(`[Scheduler] ${task.cli_tool || 'claude'} CLI result: success=${result.success}, output length=${result.output?.length || 0}`)
 
     // Update execution log
     const updatedLog = updateExecutionLog(log.id, {
