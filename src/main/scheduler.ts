@@ -121,6 +121,9 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
       // Set binary attachments for --file flag
       if (binaryFiles.length > 0) {
         binaryAttachments = binaryFiles
+        // Add attachment info to prompt so Claude knows about the files
+        const fileNames = binaryFiles.map(f => basename(f)).join(', ')
+        promptWithTextFiles = `${promptWithTextFiles}\n\n[附件檔案: ${fileNames}] - 請直接分析這些已附加的檔案內容。`
       }
     }
 

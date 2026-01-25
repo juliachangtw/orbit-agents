@@ -8,7 +8,7 @@ import type { Task } from '../../shared/types'
 type View = 'tasks' | 'logs' | 'settings'
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<View>('logs')
+  const [currentView, setCurrentView] = useState<View>('tasks')
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [taskListKey, setTaskListKey] = useState(0)
@@ -65,16 +65,6 @@ export default function App() {
         {/* Navigation */}
         <nav className="flex-1 px-3 space-y-0.5">
           <NavItem
-            label="Execution Logs"
-            icon={
-              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            }
-            active={currentView === 'logs'}
-            onClick={() => setCurrentView('logs')}
-          />
-          <NavItem
             label="Tasks"
             icon={
               <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,6 +73,16 @@ export default function App() {
             }
             active={currentView === 'tasks'}
             onClick={() => setCurrentView('tasks')}
+          />
+          <NavItem
+            label="Execution Logs"
+            icon={
+              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            }
+            active={currentView === 'logs'}
+            onClick={() => setCurrentView('logs')}
           />
           <NavItem
             label="Settings"

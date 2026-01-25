@@ -96,8 +96,8 @@ export async function executeClaudeCli(
     }
   }
 
-  // Add the prompt at the end
-  args.push(prompt)
+  // Add the prompt with -p flag (required when using --file)
+  args.push('-p', prompt)
 
   return new Promise((resolve) => {
     let stdout = ''
