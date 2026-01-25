@@ -12,6 +12,16 @@ export default function App() {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [taskListKey, setTaskListKey] = useState(0)
+  const [settingsHasUnsaved, setSettingsHasUnsaved] = useState(false)
+
+  const handleViewChange = (view: View) => {
+    if (currentView === 'settings' && settingsHasUnsaved) {
+      if (!confirm('你有未儲存的設定變更，確定要離開嗎？')) {
+        return
+      }
+    }
+    setCurrentView(view)
+  }
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task)
@@ -72,7 +82,7 @@ export default function App() {
               </svg>
             }
             active={currentView === 'tasks'}
-            onClick={() => setCurrentView('tasks')}
+            onClick={() => handleViewChange('tasks')}
           />
           <NavItem
             label="Execution Logs"
@@ -82,7 +92,7 @@ export default function App() {
               </svg>
             }
             active={currentView === 'logs'}
-            onClick={() => setCurrentView('logs')}
+            onClick={() => handleViewChange('logs')}
           />
           <NavItem
             label="Settings"
@@ -93,7 +103,7 @@ export default function App() {
               </svg>
             }
             active={currentView === 'settings'}
-            onClick={() => setCurrentView('settings')}
+            onClick={() => handleViewChange('settings')}
           />
         </nav>
 
@@ -118,7 +128,7 @@ export default function App() {
           {currentView === 'logs' && <ExecutionLog />}
           {currentView === 'settings' && (
             <div className="h-full bg-white rounded-tl-2xl shadow-sm border-t border-l border-gray-200/60 p-6 overflow-auto">
-              <Settings />
+              <Settings onUnsavedChange={setSettingsHasUnsaved} />
             </div>
           )}
         </div>

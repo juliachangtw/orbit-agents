@@ -57,6 +57,7 @@ export interface Settings {
   email_smtp_pass?: string
   email_from?: string
   claude_cli_path?: string
+  claude_session_token?: string
 }
 
 export type SettingKey = keyof Settings

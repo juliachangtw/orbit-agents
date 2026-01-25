@@ -108,10 +108,17 @@ export async function executeClaudeCli(
     const fullCommand = `${cliPath} ${args.map(a => `"${a}"`).join(' ')}`
     console.log('[Claude CLI] Executing:', fullCommand)
 
+    // Get session token from settings
+    const sessionToken = getSetting('claude_session_token')
+    const env = { ...process.env }
+    if (sessionToken) {
+      env.CLAUDE_CODE_SESSION_ACCESS_TOKEN = sessionToken
+    }
+
     // Use spawn without shell to properly handle Unicode/Chinese characters
     const proc = spawn(cliPath, args, {
       shell: false,
-      env: { ...process.env },
+      env,
       stdio: ['ignore', 'pipe', 'pipe'],  // stdin ignored, stdout/stderr piped
       detached: false
     })

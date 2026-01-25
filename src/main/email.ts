@@ -1,7 +1,16 @@
 import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
+import { marked } from 'marked'
 import { getAllSettings } from './database'
 import type { Task, ExecutionLog, Settings } from '../shared/types'
+
+// Configure marked for email-safe HTML
+marked.setOptions({
+  gfm: true,
+  breaks: true,
+  mangle: false,
+  headerIds: false
+})
 
 let transporter: Transporter | null = null
 
@@ -81,15 +90,28 @@ export async function sendTaskResultEmail(
       border-radius: 0 0 8px 8px;
     }
     .output {
-      background: #1f2937;
-      color: #f3f4f6;
-      padding: 16px;
+      background: #ffffff;
+      padding: 20px;
       border-radius: 6px;
-      overflow-x: auto;
-      white-space: pre-wrap;
-      font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 13px;
+      border: 1px solid #e5e7eb;
     }
+    .output h1 { font-size: 24px; margin: 24px 0 12px 0; color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+    .output h2 { font-size: 20px; margin: 20px 0 10px 0; color: #1f2937; }
+    .output h3 { font-size: 16px; margin: 16px 0 8px 0; color: #374151; }
+    .output p { margin: 12px 0; color: #4b5563; }
+    .output ul, .output ol { margin: 12px 0; padding-left: 24px; color: #4b5563; }
+    .output li { margin: 6px 0; }
+    .output code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-family: 'Monaco', 'Menlo', monospace; font-size: 13px; color: #7c3aed; }
+    .output pre { background: #1f2937; color: #f3f4f6; padding: 16px; border-radius: 6px; overflow-x: auto; }
+    .output pre code { background: none; padding: 0; color: inherit; }
+    .output blockquote { border-left: 4px solid #8b5cf6; margin: 16px 0; padding: 12px 16px; background: #f5f3ff; color: #5b21b6; }
+    .output table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    .output th, .output td { border: 1px solid #e5e7eb; padding: 10px 12px; text-align: left; }
+    .output th { background: #f9fafb; font-weight: 600; color: #374151; }
+    .output hr { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0; }
+    .output a { color: #7c3aed; text-decoration: none; }
+    .output a:hover { text-decoration: underline; }
+    .output strong { color: #111827; }
     .error {
       background: #fef2f2;
       border: 1px solid #fecaca;
@@ -122,7 +144,7 @@ export async function sendTaskResultEmail(
 
     ${log.output ? `
     <p class="label" style="margin-top: 20px;">Output:</p>
-    <div class="output">${escapeHtml(log.output)}</div>
+    <div class="output">${marked.parse(log.output)}</div>
     ` : ''}
 
     ${log.error ? `
