@@ -616,7 +616,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                   ].map((tool) => (
                     <label
                       key={tool.value}
-                      className={`flex-1 flex items-center justify-center p-2.5 border rounded-lg cursor-pointer transition-all ${
+                      className={`flex-1 flex items-center justify-center p-2.5 h-14 border rounded-lg cursor-pointer transition-all ${
                         formData.cli_tool === tool.value
                           ? 'bg-violet-50 border-violet-300 text-violet-700 shadow-sm'
                           : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
@@ -664,8 +664,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                       ]
                     } else if (formData.cli_tool === 'gemini') {
                       models = [
-                        { value: 'gemini-3', label: 'Auto (Gemini 3)', desc: 'Best for task (3-pro/3-flash)' },
-                        { value: 'gemini-2.5', label: 'Auto (Gemini 2.5)', desc: 'Best for task (2.5-pro/2.5-flash)' }
+                        { value: 'gemini-3', label: 'Auto (Gemini 3)', desc: 'Best for task (3-pro/3-flash)' }
                       ]
                     } else if (formData.cli_tool === 'codex') {
                       models = [
@@ -676,7 +675,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                     return models.map((model) => (
                       <label
                         key={model.value}
-                        className={`flex-1 flex flex-col items-center p-2.5 border rounded-lg cursor-pointer transition-all ${
+                        className={`flex-1 flex flex-col items-center justify-center p-2.5 h-14 border rounded-lg cursor-pointer transition-all ${
                           formData.model === model.value
                             ? 'bg-violet-50 border-violet-300 text-violet-700 shadow-sm'
                             : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
