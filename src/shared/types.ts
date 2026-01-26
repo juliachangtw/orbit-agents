@@ -63,6 +63,7 @@ export interface Settings {
   gemini_cli_path?: string
   gemini_api_key?: string
   codex_cli_path?: string
+  auto_launch?: string
 }
 
 export type SettingKey = keyof Settings

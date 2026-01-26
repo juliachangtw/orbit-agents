@@ -24,7 +24,8 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
     claude_session_token: '',
     gemini_cli_path: '',
     gemini_api_key: '',
-    codex_cli_path: ''
+    codex_cli_path: '',
+    auto_launch: 'false'
   })
 
   const [saving, setSaving] = useState(false)
@@ -55,7 +56,8 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
         claude_session_token: settings.claude_session_token || '',
         gemini_cli_path: settings.gemini_cli_path || '',
         gemini_api_key: settings.gemini_api_key || '',
-        codex_cli_path: settings.codex_cli_path || ''
+        codex_cli_path: settings.codex_cli_path || '',
+        auto_launch: settings.auto_launch || 'false'
       })
       setHasUnsavedChanges(false)
     }
@@ -74,7 +76,8 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
       formData.claude_session_token !== (settings.claude_session_token || '') ||
       formData.gemini_cli_path !== (settings.gemini_cli_path || '') ||
       formData.gemini_api_key !== (settings.gemini_api_key || '') ||
-      formData.codex_cli_path !== (settings.codex_cli_path || '')
+      formData.codex_cli_path !== (settings.codex_cli_path || '') ||
+      formData.auto_launch !== (settings.auto_launch || 'false')
     )
   }, [formData, settings])
 
@@ -187,6 +190,44 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
         <p className="text-sm text-gray-500 mt-1">Configure your Claude CLI and email settings</p>
       </div>
 
+      {/* General Settings */}
+      <section className="bg-gray-50/50 rounded-xl border border-gray-200/60 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <h3 className="text-sm font-semibold text-gray-900">General</h3>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Launch at Login
+              </label>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Automatically start Orbit when you log in
+              </p>
+            </div>
+            <button
+              onClick={() => setFormData(prev => ({ ...prev, auto_launch: prev.auto_launch === 'true' ? 'false' : 'true' }))}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 ${
+                formData.auto_launch === 'true' ? 'bg-violet-600' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  formData.auto_launch === 'true' ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Claude CLI Settings */}
       <section className="bg-gray-50/50 rounded-xl border border-gray-200/60 p-5">
         <div className="flex items-center gap-2 mb-4">
@@ -219,7 +260,7 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
 
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1.5">
-              Session Token <span className="text-gray-400 font-normal">(上傳檔案需要)</span>
+              Session Token <span className="text-gray-400 font-normal">(Required for file uploads)</span>
             </label>
             <input
               type="password"
@@ -231,7 +272,7 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
               className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors font-mono"
             />
             <p className="mt-1.5 text-xs text-gray-400">
-              從 claude.ai 的 Cookie 取得 sessionKey 值
+              Get sessionKey from claude.ai cookies
             </p>
           </div>
 
@@ -509,7 +550,7 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            有未儲存的變更
+            Unsaved changes
           </span>
         )}
 

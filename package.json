@@ -1,9 +1,9 @@
 {
-  "name": "cron-schedule",
+  "name": "orbit",
   "version": "1.0.0",
-  "description": "Mac desktop AI scheduling application with Claude CLI integration",
+  "description": "AI-Powered Cron Scheduler for Desktop",
   "main": "./out/main/index.js",
-  "author": "CronSchedule",
+  "author": "Orbit",
   "license": "MIT",
   "scripts": {
     "dev": "electron-vite dev",
@@ -47,10 +47,11 @@
     "vite": "^5.4.11"
   },
   "build": {
-    "appId": "com.cronschedule.app",
-    "productName": "CronSchedule",
+    "appId": "com.orbit.app",
+    "productName": "Orbit",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "resources"
     },
     "mac": {
       "category": "public.app-category.productivity",

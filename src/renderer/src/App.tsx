@@ -16,7 +16,7 @@ export default function App() {
 
   const handleViewChange = (view: View) => {
     if (currentView === 'settings' && settingsHasUnsaved) {
-      if (!confirm('你有未儲存的設定變更，確定要離開嗎？')) {
+      if (!confirm('You have unsaved settings changes. Are you sure you want to leave?')) {
         return
       }
     }
@@ -47,15 +47,25 @@ export default function App() {
     <div className="flex h-screen bg-[#F8F7F6]">
       {/* Sidebar */}
       <div className="w-56 bg-[#F8F7F6] flex flex-col border-r border-gray-200/60">
-        {/* App Title with drag region */}
-        <div className="h-12 drag-region flex items-center px-4">
-          <div className="pl-14 flex items-center gap-2">
-            <div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        {/* Header drag region */}
+        <div className="h-12 drag-region" />
+
+        {/* Logo & Brand */}
+        <div className="px-6 pb-2">
+          <div className="flex items-center gap-3">
+            <div className="relative flex items-center justify-center w-8 h-8">
+              {/* Central Planet/Core */}
+              <svg className="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="3" className="fill-blue-600 stroke-none" />
+                <path strokeWidth="1.5" strokeLinecap="round" className="opacity-80" d="M12 21c-4.97 0-9-4.03-9-9s4.03-9 9-9c4.97 0 9 4.03 9 9" />
+                <path strokeWidth="1.5" strokeLinecap="round" className="opacity-60" d="M19.07 4.93L4.93 19.07" />
+                <path strokeWidth="1.5" className="text-cyan-400" d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12" transform="rotate(-45 12 12)" />
+                <path strokeWidth="1.5" className="text-blue-500" d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12" transform="rotate(45 12 12)" />
               </svg>
             </div>
-            <span className="text-sm font-semibold text-gray-700">CronSchedule</span>
+            <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-cyan-600">
+              Orbit
+            </span>
           </div>
         </div>
 

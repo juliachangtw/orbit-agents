@@ -18,7 +18,7 @@ export function initDatabase(): Database.Database {
   if (db) return db
 
   const userDataPath = app.getPath('userData')
-  const dbPath = join(userDataPath, 'cronschedule.db')
+  const dbPath = join(userDataPath, 'orbit.db')
 
   db = new Database(dbPath)
   db.pragma('journal_mode = WAL')

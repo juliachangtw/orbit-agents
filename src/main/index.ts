@@ -44,6 +44,7 @@ function createWindow(): void {
     minHeight: 600,
     show: false,
     autoHideMenuBar: true,
+    title: 'Orbit',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 15, y: 15 },
     webPreferences: {
@@ -127,6 +128,16 @@ function registerIpcHandlers(): void {
 
   ipcMain.handle('settings:update', (_, settings: Partial<Settings>) => {
     updateSettings(settings)
+
+    // Handle auto launch
+    if (settings.auto_launch !== undefined) {
+      const enable = settings.auto_launch === 'true'
+      app.setLoginItemSettings({
+        openAtLogin: enable,
+        openAsHidden: false
+      })
+    }
+
     resetTransporter() // Reset transporter so new settings take effect
   })
 
@@ -179,7 +190,16 @@ function registerIpcHandlers(): void {
 // App lifecycle
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.cronschedule')
+  electronApp.setAppUserModelId('com.orbit')
+
+  // Set app name for macOS since it might default to "Electron" in dev
+  app.setName('Orbit')
+
+  // Set dock icon for macOS in development
+  if (process.platform === 'darwin' && is.dev) {
+    app.dock.setIcon(join(__dirname, '../../resources/icon.png'))
+    app.setName('Orbit') // Ensure name is set again just in case
+  }
 
   // Default open or close DevTools by F12 in development
   app.on('browser-window-created', (_, window) => {
@@ -188,6 +208,17 @@ app.whenReady().then(() => {
 
   // Initialize database
   initDatabase()
+
+  // Apply auto-launch setting
+  const settings = getAllSettings()
+  const autoLaunch = settings.auto_launch === 'true'
+  // Only set if explicitly enabled/disabled to avoid overwriting OS state if not set
+  if (settings.auto_launch) {
+    app.setLoginItemSettings({
+      openAtLogin: autoLaunch,
+      openAsHidden: false
+    })
+  }
 
   // Register IPC handlers
   registerIpcHandlers()
