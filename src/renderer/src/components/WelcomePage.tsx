@@ -6,8 +6,74 @@ export default function WelcomePage() {
     <div className="min-h-screen bg-[#F8F7F6] flex flex-col items-center justify-center relative overflow-hidden py-10">
       {/* Background Decor Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+        <style>
+          {`
+            @keyframes float-slow {
+              0%, 100% { transform: translate(0, 0) rotate(0deg); }
+              25% { transform: translate(15px, -15px) rotate(2deg); }
+              50% { transform: translate(-5px, -25px) rotate(4deg); }
+              75% { transform: translate(-20px, -10px) rotate(1deg); }
+            }
+            @keyframes float-medium {
+              0%, 100% { transform: translate(0, 0) rotate(0deg); }
+              33% { transform: translate(-20px, 15px) rotate(-2deg); }
+              66% { transform: translate(10px, 25px) rotate(2deg); }
+            }
+          `}
+        </style>
+
+        {/* Ambient Blobs */}
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-200/20 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-cyan-200/20 rounded-full blur-[120px]" />
+
+        {/* Moving Geometric Shapes */}
+        <div 
+          className="absolute top-[15%] left-[8%] w-72 h-72 border border-blue-200/30 rounded-full"
+          style={{ animation: 'float-slow 25s ease-in-out infinite' }}
+        />
+        <div 
+          className="absolute bottom-[10%] right-[5%] w-96 h-96 border border-cyan-200/30 rounded-full"
+          style={{ animation: 'float-medium 30s ease-in-out infinite', animationDelay: '-5s' }}
+        />
+        <div 
+          className="absolute top-[40%] right-[15%] w-24 h-24 border border-indigo-200/20 rotate-45 rounded-3xl"
+          style={{ animation: 'float-slow 20s ease-in-out infinite', animationDelay: '-12s' }}
+        />
+
+        {/* Animated Lines/Particles */}
+        <svg className="absolute inset-0 w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="85%" cy="12%" r="4" fill="#60A5FA" className="animate-pulse" />
+          <circle cx="12%" cy="85%" r="6" fill="#22D3EE" className="animate-pulse" style={{ animationDelay: '1s' }} />
+          <circle cx="50%" cy="92%" r="3" fill="#818CF8" className="animate-pulse" style={{ animationDelay: '2s' }} />
+
+          <path 
+            d="M 100 100 C 200 200, 400 0, 500 100" 
+            fill="none" 
+            stroke="url(#grad1)" 
+            strokeWidth="1.5"
+            style={{ animation: 'float-medium 20s ease-in-out infinite' }}
+          />
+          <path 
+            d="M 800 600 C 600 700, 500 500, 300 600" 
+            fill="none" 
+            stroke="url(#grad2)" 
+            strokeWidth="1.5"
+            style={{ animation: 'float-slow 25s ease-in-out infinite', animationDelay: '5s' }}
+          />
+          
+          <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#60A5FA" stopOpacity="0" />
+              <stop offset="50%" stopColor="#60A5FA" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#60A5FA" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#22D3EE" stopOpacity="0" />
+              <stop offset="50%" stopColor="#22D3EE" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#22D3EE" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
 
       {/* Main Content */}

@@ -17,7 +17,6 @@ export default function App() {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [taskListKey, setTaskListKey] = useState(0)
-  const [taskListKey, setTaskListKey] = useState(0)
 
   if (!isElectron) {
     return <WelcomePage />
