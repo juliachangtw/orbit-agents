@@ -150,7 +150,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
     setFormData((prev) => ({
       ...prev,
       mcp_tools: prev.mcp_tools.includes(toolPattern)
-        ? prev.mcp_tools.filter((t) => t !== toolPattern)
+        ? prev.mcp_tools.filter((t: string) => t !== toolPattern)
         : [...prev.mcp_tools, toolPattern]
     }))
   }
@@ -620,7 +620,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                 </button>
                 {formData.attachments.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
-                    {formData.attachments.map((filePath, index) => (
+                    {formData.attachments.map((filePath: string, index: number) => (
                       <div key={index} className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md text-xs text-gray-700">
                         <span className="truncate max-w-[150px]" title={filePath}>
                           {filePath.split('/').pop()}
@@ -630,7 +630,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                           onClick={() => {
                             setFormData((prev) => ({
                               ...prev,
-                              attachments: prev.attachments.filter((_, i) => i !== index)
+                              attachments: prev.attachments.filter((_: string, i: number) => i !== index)
                             }))
                           }}
                           className="text-gray-400 hover:text-red-500 transition-colors"

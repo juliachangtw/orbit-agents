@@ -3,16 +3,25 @@ import TaskList from './components/TaskList'
 import TaskForm from './components/TaskForm'
 import ExecutionLog from './components/ExecutionLog'
 import Settings from './components/Settings'
+import WelcomePage from './components/WelcomePage'
 import type { Task } from '../../shared/types'
 
 type View = 'tasks' | 'logs' | 'settings'
 
 export default function App() {
+  // Check synchronously to avoid flash of wrong content and potential crashes in hooks
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [isElectron] = useState(() => (window as any).electronApi !== undefined)
+  
   const [currentView, setCurrentView] = useState<View>('tasks')
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [taskListKey, setTaskListKey] = useState(0)
   const [settingsHasUnsaved, setSettingsHasUnsaved] = useState(false)
+
+  if (!isElectron) {
+    return <WelcomePage />
+  }
 
   const handleViewChange = (view: View) => {
     if (currentView === 'settings' && settingsHasUnsaved) {
