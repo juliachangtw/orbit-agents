@@ -52,7 +52,7 @@ export default function App() {
 
         {/* Logo & Brand */}
         <div className="px-6 pb-2">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
             <div className="relative flex items-center justify-center w-8 h-8">
               {/* Central Planet/Core */}
               <svg className="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -64,7 +64,7 @@ export default function App() {
               </svg>
             </div>
             <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-cyan-600">
-              Orbit
+              Orbit Agent
             </span>
           </div>
         </div>

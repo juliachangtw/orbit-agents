@@ -55,6 +55,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
     mcp_tools: task?.mcp_tools ? JSON.parse(task.mcp_tools) : [] as string[],
     attachments: task?.attachments ? JSON.parse(task.attachments) : [] as string[],
     output_type: (task?.output_type || 'log') as 'log' | 'both',
+    email_to: task?.email_to || '',
     week_interval: task?.week_interval ?? 1,
     enabled: task ? task.enabled === 1 : true
   })
@@ -155,8 +156,8 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
@@ -404,7 +405,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                   )}
 
                   {/* Schedule description */}
-                  <div className="flex items-center gap-2 pt-1 border-t border-gray-200/60">
+                  <div className="flex items-center gap-1 pt-1 border-t border-gray-200/60">
                     <svg className="w-3.5 h-3.5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>

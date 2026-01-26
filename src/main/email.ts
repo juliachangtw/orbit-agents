@@ -166,7 +166,7 @@ export async function sendTaskResultEmail(
   await transport.sendMail({
     from: fromAddress,
     to: task.email_to,
-    subject: `[Orbit] ${statusEmoji} ${task.name} - ${statusText}`,
+    subject: `[Orbit Agent] ${statusEmoji} ${task.name} - ${statusText}`,
     html: htmlContent,
     text: `Task: ${task.name}\nStatus: ${statusText}\n\nPrompt:\n${task.prompt}\n\n${log.output ? `Output:\n${log.output}` : ''}${log.error ? `\n\nError:\n${log.error}` : ''}`
   })
@@ -185,7 +185,7 @@ export async function sendTestEmail(toAddress: string): Promise<void> {
   await transport.sendMail({
     from: fromAddress,
     to: toAddress,
-    subject: '[Orbit] Test Email',
+    subject: '[Orbit Agent] Test Email',
     html: `
 <!DOCTYPE html>
 <html>
@@ -212,13 +212,13 @@ export async function sendTestEmail(toAddress: string): Promise<void> {
 <body>
   <div class="card">
     <h1 style="color: #16a34a; margin: 0;">✅ Email Configuration Working!</h1>
-    <p>Your Orbit email settings are configured correctly.</p>
+    <p>Your Orbit Agent email settings are configured correctly.</p>
     <p style="color: #6b7280; font-size: 14px;">Sent at: ${new Date().toISOString()}</p>
   </div>
 </body>
 </html>
 `,
-    text: 'Your Orbit email settings are configured correctly.'
+    text: 'Your Orbit Agent email settings are configured correctly.'
   })
 }
 

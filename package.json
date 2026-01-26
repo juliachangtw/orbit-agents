@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "AI-Powered Cron Scheduler for Desktop",
   "main": "./out/main/index.js",
-  "author": "Orbit",
+  "author": "Orbit Agent",
   "license": "MIT",
   "scripts": {
     "dev": "electron-vite dev",
@@ -48,7 +48,7 @@
   },
   "build": {
     "appId": "com.orbit.app",
-    "productName": "Orbit",
+    "productName": "Orbit Agent",
     "directories": {
       "output": "dist",
       "buildResources": "resources"

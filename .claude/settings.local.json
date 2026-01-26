@@ -6,7 +6,8 @@
       "Bash(sqlite3:*)",
       "Bash(timeout 30 claude:*)",
       "Bash(kill:*)",
-      "Bash(timeout 20 /Users/muki/.local/bin/claude:*)"
+      "Bash(timeout 20 /Users/muki/.local/bin/claude:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
