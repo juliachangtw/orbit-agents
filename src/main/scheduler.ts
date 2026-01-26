@@ -28,9 +28,8 @@ function isBinaryFile(filePath: string): boolean {
 }
 import { executeClaudeCli } from './claude-cli'
 import { executeGeminiCli } from './gemini-cli'
-import { executeCodexCli } from './codex-cli'
 import { sendTaskResultEmail } from './email'
-import type { Task, ExecutionLog, ClaudeCliResult, GeminiCliResult, CodexCliResult } from '../shared/types'
+import type { Task, ExecutionLog, ClaudeCliResult, GeminiCliResult } from '../shared/types'
 
 // Store active cron jobs
 const activeJobs: Map<string, ScheduledTask> = new Map()
@@ -145,12 +144,10 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
       }
     }
 
-    let result: ClaudeCliResult | GeminiCliResult | CodexCliResult
+    let result: ClaudeCliResult | GeminiCliResult
 
     if (task.cli_tool === 'gemini') {
       result = await executeGeminiCli(promptWithTextFiles, task.model, onOutput, binaryAttachments, mcpTools)
-    } else if (task.cli_tool === 'codex') {
-      result = await executeCodexCli(promptWithTextFiles, task.model, onOutput, binaryAttachments, mcpTools)
     } else {
       // Default to Claude
       result = await executeClaudeCli(promptWithTextFiles, mcpTools, task.model, onOutput, binaryAttachments)
@@ -214,7 +211,7 @@ export function scheduleTask(task: Task): void {
         const oneWeek = 7 * 24 * 60 * 60 * 1000
         // Calculate weeks difference
         const weeksDiff = Math.floor((now.getTime() - createdAt.getTime()) / oneWeek)
-        
+
         if (weeksDiff % currentTask.week_interval !== 0) {
           console.log(`[Scheduler] Skipping task ${currentTask.name} (${currentTask.id}) due to week interval ${currentTask.week_interval} (weeks diff: ${weeksDiff})`)
           return

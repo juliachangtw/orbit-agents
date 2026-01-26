@@ -26,8 +26,6 @@ const api: ElectronApi = {
       'claude:list-mcps',
       'gemini:test',
       'gemini:list-mcps',
-      'codex:test',
-      'codex:list-mcps',
       'dialog:open-files'
     ]
 

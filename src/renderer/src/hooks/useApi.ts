@@ -8,7 +8,6 @@ import type {
   Settings,
   ClaudeCliResult,
   GeminiCliResult,
-  CodexCliResult,
   McpServer
 } from '../../../shared/types'
 
@@ -232,18 +231,6 @@ export function useGeminiCli() {
 
   const listMcps = useCallback(async (): Promise<McpServer[]> => {
     return api.invoke('gemini:list-mcps')
-  }, [])
-
-  return { testConnection, listMcps }
-}
-
-export function useCodexCli() {
-  const testConnection = useCallback(async (): Promise<CodexCliResult> => {
-    return api.invoke('codex:test')
-  }, [])
-
-  const listMcps = useCallback(async (): Promise<McpServer[]> => {
-    return api.invoke('codex:list-mcps')
   }, [])
 
   return { testConnection, listMcps }

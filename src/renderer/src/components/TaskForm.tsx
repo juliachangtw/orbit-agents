@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useTasks, useClaudeCli, useGeminiCli, useCodexCli } from '../hooks/useApi'
+import { useTasks, useClaudeCli, useGeminiCli } from '../hooks/useApi'
 import type { Task, CreateTaskInput, McpServer, ModelType } from '../../../shared/types'
 import { RefreshCw, Sun, Calendar, CalendarDays } from 'lucide-react'
 
@@ -23,7 +23,6 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
   const { createTask, updateTask } = useTasks()
   const { listMcps: listClaudeMcps } = useClaudeCli()
   const { listMcps: listGeminiMcps } = useGeminiCli()
-  const { listMcps: listCodexMcps } = useCodexCli()
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -43,7 +42,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
             description: task.description || '',
             cron_expression: task.cron_expression || '0 9 * * *',
             prompt: task.prompt || '',
-            cli_tool: (task.cli_tool || 'claude') as 'claude' | 'gemini' | 'codex',
+            cli_tool: (task.cli_tool || 'claude') as 'claude' | 'gemini',
             model: (task.model || 'sonnet') as ModelType,
             mcp_tools: task.mcp_tools ? JSON.parse(task.mcp_tools) : [] as string[],
             attachments: task.attachments ? JSON.parse(task.attachments) : [] as string[],
@@ -85,7 +84,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
     description: task?.description || '',
     cron_expression: task?.cron_expression || '0 9 * * *',
     prompt: task?.prompt || '',
-    cli_tool: (task?.cli_tool || 'claude') as 'claude' | 'gemini' | 'codex',
+    cli_tool: (task?.cli_tool || 'claude') as 'claude' | 'gemini',
     model: (task?.model || 'sonnet') as ModelType,
     mcp_tools: task?.mcp_tools ? JSON.parse(task.mcp_tools) : [] as string[],
     attachments: task?.attachments ? JSON.parse(task.attachments) : [] as string[],
@@ -127,8 +126,6 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
           servers = await listClaudeMcps()
         } else if (formData.cli_tool === 'gemini') {
           servers = await listGeminiMcps()
-        } else if (formData.cli_tool === 'codex') {
-          servers = await listCodexMcps()
         }
         setMcpServers(servers)
       } catch (err) {
@@ -140,7 +137,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
     }
 
     fetchMcps()
-  }, [formData.cli_tool, listClaudeMcps, listGeminiMcps, listCodexMcps])
+  }, [formData.cli_tool, listClaudeMcps, listGeminiMcps])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -495,17 +492,15 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
                 <div className="flex gap-2">
                   {[
                     { value: 'claude', label: 'Claude' },
-                    { value: 'gemini', label: 'Gemini' },
-                    { value: 'codex', label: 'Codex' }
+                    { value: 'gemini', label: 'Gemini' }
                   ].map((tool) => (
                     <button
                       key={tool.value}
                       type="button"
                       onClick={() => {
-                        const toolValue = tool.value as 'claude' | 'gemini' | 'codex'
+                        const toolValue = tool.value as 'claude' | 'gemini'
                         let defaultModel: ModelType = 'sonnet'
                         if (toolValue === 'gemini') defaultModel = 'gemini-3'
-                        if (toolValue === 'codex') defaultModel = 'codex-default'
 
                         setFormData((prev) => ({
                           ...prev,
@@ -543,10 +538,6 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
                     } else if (formData.cli_tool === 'gemini') {
                       models = [
                         { value: 'gemini-3', label: 'Auto (Gemini 3)', desc: 'Best for task (3-pro/3-flash)' }
-                      ]
-                    } else if (formData.cli_tool === 'codex') {
-                      models = [
-                        { value: 'codex-default', label: 'Default', desc: 'Standard' }
                       ]
                     }
 
