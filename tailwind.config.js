@@ -3,6 +3,10 @@ module.exports = {
   content: ['./src/renderer/**/*.{html,js,jsx,ts,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Reddit Sans Condensed"', 'sans-serif'],
+        display: ['"Reddit Sans Condensed"', 'sans-serif'],
+      },
       colors: {
         primary: {
           50: '#f0f9ff',

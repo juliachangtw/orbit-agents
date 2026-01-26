@@ -3,7 +3,7 @@ import React from 'react'
 
 export default function WelcomePage() {
   return (
-    <div className="min-h-screen bg-[#F8F7F6] flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-[#F8F7F6] flex flex-col items-center justify-center relative overflow-hidden py-10">
       {/* Background Decor Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-200/20 rounded-full blur-[120px]" />
@@ -20,11 +20,11 @@ export default function WelcomePage() {
         </div>
 
         {/* Headlines */}
-        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 tracking-tight mb-6">
+        <h1 className="text-5xl md:text-6xl font-bold font-display text-gray-900 tracking-tight mb-6">
           Welcome to <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-cyan-600">Orbit Agents</span>
         </h1>
         
-        <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed font-display">
           An AI-powered assistant built for developers to streamline task execution, workflow management, and development automation. Easily integrate with any MCP server or local filesystem.
         </p>
 

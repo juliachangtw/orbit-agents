@@ -17,18 +17,13 @@ export default function App() {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [taskListKey, setTaskListKey] = useState(0)
-  const [settingsHasUnsaved, setSettingsHasUnsaved] = useState(false)
+  const [taskListKey, setTaskListKey] = useState(0)
 
   if (!isElectron) {
     return <WelcomePage />
   }
 
   const handleViewChange = (view: View) => {
-    if (currentView === 'settings' && settingsHasUnsaved) {
-      if (!confirm('You have unsaved settings changes. Are you sure you want to leave?')) {
-        return
-      }
-    }
     setCurrentView(view)
   }
 
@@ -127,7 +122,7 @@ export default function App() {
         </nav>
 
         {/* Version info */}
-        <div className="p-4 text-xs text-gray-400">
+        <div className="p-4 text-sm text-gray-400">
           v1.0.0
         </div>
       </div>
@@ -147,7 +142,7 @@ export default function App() {
           {currentView === 'logs' && <ExecutionLog />}
           {currentView === 'settings' && (
             <div className="h-full bg-white rounded-tl-2xl shadow-sm border-t border-l border-gray-200/60 p-6 overflow-auto">
-              <Settings onUnsavedChange={setSettingsHasUnsaved} />
+              <Settings />
             </div>
           )}
         </div>
@@ -172,7 +167,7 @@ function NavItem({ label, icon, active, onClick }: NavItemProps) {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-all text-[13px] ${
+      className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-all text-sm ${
         active
           ? 'bg-white shadow-sm text-gray-900 font-medium border border-gray-200/60'
           : 'text-gray-600 hover:bg-white/60'

@@ -164,7 +164,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
             <h2 className="text-base font-semibold text-gray-900">
               {task ? 'Edit Task' : 'New Task'}
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">Configure your scheduled AI task</p>
+            <p className="text-sm text-gray-500 mt-0.5">Configure your scheduled AI task</p>
           </div>
           <button
             onClick={onClose}
@@ -190,7 +190,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
 
             {/* Name */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 mb-1.5">
                 Task Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -205,7 +205,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 mb-1.5">
                 Description <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
               <input
@@ -220,14 +220,14 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
             {/* Schedule */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-medium text-gray-600">
+                <label className="block text-sm font-medium text-gray-600">
                   Schedule <span className="text-red-500">*</span>
                 </label>
                 <div className="flex bg-gray-100 rounded-md p-0.5">
                   <button
                     type="button"
                     onClick={() => setScheduleMode('simple')}
-                    className={`px-2 py-1 text-[10px] font-medium rounded transition-all ${
+                    className={`px-2 py-1 text-sm font-medium rounded transition-all ${
                       scheduleMode === 'simple'
                         ? 'bg-white text-gray-900 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
@@ -238,7 +238,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                   <button
                     type="button"
                     onClick={() => setScheduleMode('advanced')}
-                    className={`px-2 py-1 text-[10px] font-medium rounded transition-all ${
+                    className={`px-2 py-1 text-sm font-medium rounded transition-all ${
                       scheduleMode === 'advanced'
                         ? 'bg-white text-gray-900 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
@@ -263,7 +263,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                         key={f.value}
                         type="button"
                         onClick={() => setFrequency(f.value as FrequencyType)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-md border transition-all ${
+                        className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-sm font-medium rounded-md border transition-all ${
                           frequency === f.value
                             ? 'bg-violet-100 border-violet-300 text-violet-700'
                             : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -278,20 +278,20 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                   {/* Interval options */}
                   {frequency === 'interval' && (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-600">Every</span>
+                      <span className="text-sm text-gray-600">Every</span>
                       <input
                         type="number"
                         min={1}
                         max={intervalUnit === 'minutes' ? 59 : 23}
                         value={intervalValue}
                         onChange={(e) => setIntervalValue(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-16 px-2 py-1.5 text-xs bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 text-center"
+                        className="w-16 px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 text-center"
                       />
                       <div className="flex bg-white border border-gray-200 rounded-md overflow-hidden">
                         <button
                           type="button"
                           onClick={() => setIntervalUnit('minutes')}
-                          className={`px-2 py-1.5 text-xs font-medium transition-colors ${
+                          className={`px-2 py-1.5 text-sm font-medium transition-colors ${
                             intervalUnit === 'minutes' ? 'bg-violet-100 text-violet-700' : 'text-gray-600 hover:bg-gray-50'
                           }`}
                         >
@@ -300,7 +300,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                         <button
                           type="button"
                           onClick={() => setIntervalUnit('hours')}
-                          className={`px-2 py-1.5 text-xs font-medium transition-colors ${
+                          className={`px-2 py-1.5 text-sm font-medium transition-colors ${
                             intervalUnit === 'hours' ? 'bg-violet-100 text-violet-700' : 'text-gray-600 hover:bg-gray-50'
                           }`}
                         >
@@ -313,12 +313,12 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                   {/* Time picker for daily only */}
                   {frequency === 'daily' && (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-600">At</span>
+                      <span className="text-sm text-gray-600">At</span>
                       <input
                         type="time"
                         value={scheduleTime}
                         onChange={(e) => setScheduleTime(e.target.value)}
-                        className="px-2 py-1.5 text-xs bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                        className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                       />
                     </div>
                   )}
@@ -329,40 +329,40 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                       {/* Time + Week interval in one row */}
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-600">At</span>
+                          <span className="text-sm text-gray-600">At</span>
                           <input
                             type="time"
                             value={scheduleTime}
                             onChange={(e) => setScheduleTime(e.target.value)}
-                            className="px-2 py-1.5 text-xs bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                            className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                           />
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-600">Every</span>
+                          <span className="text-sm text-gray-600">Every</span>
                           <select
                             value={weekInterval}
                             onChange={(e) => setWeekInterval(parseInt(e.target.value))}
-                            className="px-2 py-1.5 text-xs bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                            className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                           >
                             <option value={1}>1</option>
                             <option value={2}>2</option>
                             <option value={3}>3</option>
                             <option value={4}>4</option>
                           </select>
-                          <span className="text-xs text-gray-600">{weekInterval === 1 ? 'week' : 'weeks'}</span>
+                          <span className="text-sm text-gray-600">{weekInterval === 1 ? 'week' : 'weeks'}</span>
                         </div>
                       </div>
 
                       {/* Day selection */}
                       <div>
-                        <span className="text-xs text-gray-600 block mb-1.5">On</span>
+                        <span className="text-sm text-gray-600 block mb-1.5">On</span>
                         <div className="flex gap-1">
                           {WEEKDAYS.map((day) => (
                             <button
                               key={day.value}
                               type="button"
                               onClick={() => toggleWeekday(day.value)}
-                              className={`flex-1 py-1.5 text-[10px] font-medium rounded-md border transition-all ${
+                              className={`flex-1 py-1.5 text-sm font-medium rounded-md border transition-all ${
                                 selectedWeekdays.includes(day.value)
                                   ? 'bg-violet-100 border-violet-300 text-violet-700'
                                   : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
@@ -381,20 +381,20 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                   {frequency === 'monthly' && (
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-600">At</span>
+                        <span className="text-sm text-gray-600">At</span>
                         <input
                           type="time"
                           value={scheduleTime}
                           onChange={(e) => setScheduleTime(e.target.value)}
-                          className="px-2 py-1.5 text-xs bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                          className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                         />
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-600">On day</span>
+                        <span className="text-sm text-gray-600">On day</span>
                         <select
                           value={monthDay}
                           onChange={(e) => setMonthDay(parseInt(e.target.value))}
-                          className="px-2 py-1.5 text-xs bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                          className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                         >
                           {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                             <option key={d} value={d}>{d}</option>
@@ -409,7 +409,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                     <svg className="w-3.5 h-3.5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-xs text-violet-600 font-medium">{scheduleDescription}</span>
+                    <span className="text-sm text-violet-600 font-medium">{scheduleDescription}</span>
                   </div>
                 </div>
               ) : (
@@ -422,7 +422,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                     className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 font-mono transition-colors"
                     placeholder="* * * * *"
                   />
-                  <div className="flex items-start gap-2 text-xs text-gray-400">
+                  <div className="flex items-start gap-2 text-sm text-gray-400">
                     <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -437,7 +437,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
 
             {/* Prompt */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 mb-1.5">
                 AI Prompt <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -453,7 +453,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
             {/* AI Provider & Model */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">
+                <label className="block text-sm font-medium text-gray-600 mb-2">
                   AI Provider
                 </label>
                 <div className="flex gap-2">
@@ -497,7 +497,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">
+                <label className="block text-sm font-medium text-gray-600 mb-2">
                   AI Model
                 </label>
                 <div className="flex gap-2">
@@ -543,7 +543,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                           className="sr-only"
                         />
                         <span className="font-medium text-sm">{model.label}</span>
-                        <span className="text-[10px] opacity-70">{model.desc}</span>
+                        <span className="text-sm opacity-70">{model.desc}</span>
                       </label>
                     ))
                   })()}
@@ -553,11 +553,11 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
 
             {/* MCP Tools */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">
+              <label className="block text-sm font-medium text-gray-600 mb-2">
                 MCP Tools <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
               {loadingMcps ? (
-                <div className="flex items-center gap-2 text-xs text-gray-500 py-2">
+                <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
                   <div className="animate-spin rounded-full h-3 w-3 border-2 border-violet-600 border-t-transparent"></div>
                   Loading MCP servers...
                 </div>
@@ -571,7 +571,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                         key={server.name}
                         type="button"
                         onClick={() => toggleMcpTool(toolPattern)}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+                        className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all ${
                           isSelected
                             ? 'bg-violet-100 border-violet-300 text-violet-700'
                             : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
@@ -588,7 +588,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                   })}
                 </div>
               ) : (
-                <p className="text-xs text-gray-400">
+                <p className="text-sm text-gray-400">
                   No MCP servers configured in {formData.cli_tool} CLI
                 </p>
               )}
@@ -596,7 +596,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
 
             {/* Attachments */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">
+              <label className="block text-sm font-medium text-gray-600 mb-2">
                 Attachments <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
               <div className="space-y-2">
@@ -611,7 +611,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                       }))
                     }
                   }}
-                  className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 flex items-center gap-1.5 transition-colors"
+                  className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 flex items-center gap-1.5 transition-colors"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -621,7 +621,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                 {formData.attachments.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {formData.attachments.map((filePath: string, index: number) => (
-                      <div key={index} className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md text-xs text-gray-700">
+                      <div key={index} className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md text-sm text-gray-700">
                         <span className="truncate max-w-[150px]" title={filePath}>
                           {filePath.split('/').pop()}
                         </span>
@@ -648,14 +648,14 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
 
             {/* Output Type */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">
+              <label className="block text-sm font-medium text-gray-600 mb-2">
                 Output
               </label>
               <div className="flex gap-2">
                 {(['log', 'both'] as const).map((type) => (
                   <label
                     key={type}
-                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border rounded-lg cursor-pointer transition-all text-xs font-medium ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border rounded-lg cursor-pointer transition-all text-sm font-medium ${
                       formData.output_type === type
                         ? 'bg-violet-50 border-violet-300 text-violet-700'
                         : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
@@ -684,7 +684,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
             {/* Email To (conditional) */}
             {formData.output_type === 'both' && (
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label className="block text-sm font-medium text-gray-600 mb-1.5">
                   Email To <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -713,7 +713,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                   }`}
                 />
               </button>
-              <label className="text-xs text-gray-600">
+              <label className="text-sm text-gray-600">
                 Enable task immediately
               </label>
             </div>
@@ -725,14 +725,14 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-xs font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              className="px-4 py-2 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
             >
               {loading && (
                 <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>

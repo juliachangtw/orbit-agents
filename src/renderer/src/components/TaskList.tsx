@@ -183,7 +183,7 @@ function TaskCard({
         {description ? (
           <span className="font-medium text-gray-700">{description}</span>
         ) : (
-          <code className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono" title="Custom Cron Expression">
+          <code className="bg-gray-100 px-2 py-0.5 rounded text-sm font-mono" title="Custom Cron Expression">
             {task.cron_expression}
           </code>
         )}
@@ -192,7 +192,7 @@ function TaskCard({
       {/* Output Type Badge */}
       <div className="flex items-center gap-2 mb-4">
         <span
-          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+          className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
             task.output_type === 'both'
               ? 'bg-blue-100 text-blue-700'
               : 'bg-gray-100 text-gray-600'
@@ -202,7 +202,7 @@ function TaskCard({
           {task.output_type === 'both' && 'Log + Email'}
         </span>
         {task.mcp_tools && JSON.parse(task.mcp_tools).length > 0 && (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700">
             MCP Tools
           </span>
         )}
@@ -210,7 +210,7 @@ function TaskCard({
 
       {/* Prompt Preview */}
       <div className="bg-gray-50 rounded-lg p-3 mb-4">
-        <p className="text-xs text-gray-500 font-medium mb-1">Prompt</p>
+        <p className="text-sm text-gray-500 font-medium mb-1">Prompt</p>
         <p className="text-sm text-gray-700 line-clamp-3">{task.prompt}</p>
       </div>
 
