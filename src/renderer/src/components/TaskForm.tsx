@@ -24,7 +24,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
   const { listMcps: listClaudeMcps } = useClaudeCli()
   const { listMcps: listGeminiMcps } = useGeminiCli()
   const { listMcps: listCodexMcps } = useCodexCli()
-  
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mcpServers, setMcpServers] = useState<McpServer[]>([])
@@ -213,7 +213,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[calc(90vh-140px)]">
+        <form id="task-form" onSubmit={handleSubmit} className={`overflow-y-auto ${variant === 'modal' ? 'max-h-[calc(90vh-140px)]' : 'flex-1 min-h-0'}`}>
           <div className="p-6 space-y-5">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm flex items-center gap-2">
@@ -498,36 +498,30 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
                     { value: 'gemini', label: 'Gemini' },
                     { value: 'codex', label: 'Codex' }
                   ].map((tool) => (
-                    <label
+                    <button
                       key={tool.value}
-                      className={`flex-1 flex items-center justify-center p-2.5 h-14 border rounded-lg cursor-pointer transition-all ${
+                      type="button"
+                      onClick={() => {
+                        const toolValue = tool.value as 'claude' | 'gemini' | 'codex'
+                        let defaultModel: ModelType = 'sonnet'
+                        if (toolValue === 'gemini') defaultModel = 'gemini-3'
+                        if (toolValue === 'codex') defaultModel = 'codex-default'
+
+                        setFormData((prev) => ({
+                          ...prev,
+                          cli_tool: toolValue,
+                          model: defaultModel,
+                          mcp_tools: []
+                        }))
+                      }}
+                      className={`flex-1 flex items-center justify-center p-2.5 h-14 border rounded-lg transition-all ${
                         formData.cli_tool === tool.value
                           ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm'
                           : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                       }`}
                     >
-                      <input
-                        type="radio"
-                        name="cli_tool"
-                        value={tool.value}
-                        checked={formData.cli_tool === tool.value}
-                        onChange={(e) => {
-                          const tool = e.target.value as 'claude' | 'gemini' | 'codex'
-                          let defaultModel: ModelType = 'sonnet'
-                          if (tool === 'gemini') defaultModel = 'gemini-3'
-                          if (tool === 'codex') defaultModel = 'codex-default'
-                          
-                          setFormData((prev) => ({
-                            ...prev,
-                            cli_tool: tool,
-                            model: defaultModel,
-                            mcp_tools: [] // Clear selected tools when provider changes
-                          }))
-                        }}
-                        className="sr-only"
-                      />
                       <span className="font-medium text-sm">{tool.label}</span>
-                    </label>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -539,7 +533,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
                 <div className="flex gap-2">
                   {(() => {
                     let models: { value: ModelType, label: string, desc: string }[] = []
-                    
+
                     if (formData.cli_tool === 'claude') {
                       models = [
                         { value: 'haiku', label: 'Haiku', desc: 'Fast' },
@@ -557,30 +551,19 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
                     }
 
                     return models.map((model) => (
-                      <label
+                      <button
                         key={model.value}
-                        className={`flex-1 flex flex-col items-center justify-center p-2.5 h-14 border rounded-lg cursor-pointer transition-all ${
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, model: model.value }))}
+                        className={`flex-1 flex flex-col items-center justify-center p-2.5 h-14 border rounded-lg transition-all ${
                           formData.model === model.value
                             ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm'
                             : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                         }`}
                       >
-                        <input
-                          type="radio"
-                          name="model"
-                          value={model.value}
-                          checked={formData.model === model.value}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              model: e.target.value as ModelType
-                            }))
-                          }
-                          className="sr-only"
-                        />
                         <span className="font-medium text-sm">{model.label}</span>
                         <span className="text-sm opacity-70">{model.desc}</span>
-                      </label>
+                      </button>
                     ))
                   })()}
                 </div>
@@ -689,30 +672,19 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
               </label>
               <div className="flex gap-2">
                 {(['log', 'both'] as const).map((type) => (
-                  <label
+                  <button
                     key={type}
-                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border rounded-lg cursor-pointer transition-all text-sm font-medium ${
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, output_type: type }))}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border rounded-lg transition-all text-sm font-medium ${
                       formData.output_type === type
                         ? 'bg-blue-50 border-blue-300 text-blue-700'
                         : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    <input
-                      type="radio"
-                      name="output_type"
-                      value={type}
-                      checked={formData.output_type === type}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          output_type: e.target.value as 'log' | 'both'
-                        }))
-                      }
-                      className="sr-only"
-                    />
                     {type === 'log' && 'Log Only'}
                     {type === 'both' && 'Log + Email'}
-                  </label>
+                  </button>
                 ))}
               </div>
             </div>
@@ -754,29 +726,30 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
               </label>
             </div>
           </div>
-
-          {/* Footer */}
-          <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2 bg-gray-50/50">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
-            >
-              {loading && (
-                <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
-              )}
-              {task ? 'Save Changes' : 'Create Task'}
-            </button>
-          </div>
         </form>
+
+        {/* Footer - Fixed at bottom */}
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2 bg-white flex-shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="task-form"
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
+          >
+            {loading && (
+              <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
+            )}
+            {task ? 'Save Changes' : 'Create Task'}
+          </button>
+        </div>
       </div>
 
   )
