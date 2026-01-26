@@ -1,9 +1,9 @@
 {
-  "name": "orbit",
+  "name": "orbit-agents",
   "version": "1.0.0",
   "description": "AI-Powered Cron Scheduler for Desktop",
   "main": "./out/main/index.js",
-  "author": "Orbit Agent",
+  "author": "Muki Wu",
   "license": "MIT",
   "scripts": {
     "dev": "electron-vite dev",
@@ -28,6 +28,7 @@
     "@electron-toolkit/utils": "^3.0.0",
     "@tailwindcss/typography": "^0.5.19",
     "@types/better-sqlite3": "^7.6.12",
+    "@types/marked": "^5.0.2",
     "@types/node": "^22.10.2",
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.17",
@@ -47,8 +48,8 @@
     "vite": "^5.4.11"
   },
   "build": {
-    "appId": "com.orbit.app",
-    "productName": "Orbit Agent",
+    "appId": "com.orbit.agents.app",
+    "productName": "Orbit Agents",
     "directories": {
       "output": "dist",
       "buildResources": "resources"

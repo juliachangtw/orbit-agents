@@ -73,7 +73,7 @@ export default function App() {
               </svg>
             </div>
             <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-cyan-600">
-              Orbit Agent
+              Orbit Agents
             </span>
           </div>
         </div>

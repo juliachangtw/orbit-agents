@@ -209,7 +209,7 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
                 Launch at Login
               </label>
               <p className="text-xs text-gray-500 mt-0.5">
-                Automatically start Orbit Agent when you log in
+                Automatically start Orbit Agents when you log in
               </p>
             </div>
             <button

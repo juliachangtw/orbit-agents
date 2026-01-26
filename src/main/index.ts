@@ -45,7 +45,7 @@ function createWindow(): void {
     minHeight: 600,
     show: false,
     autoHideMenuBar: true,
-    title: 'Orbit Agent',
+    title: 'Orbit Agents',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 15, y: 15 },
     webPreferences: {
@@ -198,12 +198,12 @@ app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.orbit')
 
   // Set app name for macOS since it might default to "Electron" in dev
-  app.setName('Orbit Agent')
+  app.setName('Orbit Agents')
 
   // Set dock icon for macOS in development
   if (process.platform === 'darwin' && is.dev) {
     app.dock.setIcon(join(__dirname, '../../resources/icon.png'))
-    app.setName('Orbit Agent') // Ensure name is set again just in case
+    app.setName('Orbit Agents') // Ensure name is set again just in case
   }
 
   // Default open or close DevTools by F12 in development
