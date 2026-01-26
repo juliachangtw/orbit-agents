@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { parseCronToSimple, getScheduleDescription } from '../utils/cron'
 import { useTasks } from '../hooks/useApi'
 import type { Task } from '../../../shared/types'
 
@@ -127,6 +128,20 @@ function TaskCard({
 }: TaskCardProps) {
   const isEnabled = task.enabled === 1
 
+  const description = useMemo(() => {
+    const schedule = parseCronToSimple(task.cron_expression)
+    if (schedule.mode === 'advanced') return null
+    return getScheduleDescription(
+      schedule.frequency,
+      schedule.intervalValue,
+      schedule.intervalUnit,
+      schedule.time,
+      schedule.weekdays,
+      schedule.weekInterval,
+      schedule.monthDay
+    )
+  }, [task.cron_expression])
+
   return (
     <div
       className={`bg-white rounded-xl border p-5 transition-all ${
@@ -165,9 +180,13 @@ function TaskCard({
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <code className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">
-          {task.cron_expression}
-        </code>
+        {description ? (
+          <span className="font-medium text-gray-700">{description}</span>
+        ) : (
+          <code className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono" title="Custom Cron Expression">
+            {task.cron_expression}
+          </code>
+        )}
       </div>
 
       {/* Output Type Badge */}

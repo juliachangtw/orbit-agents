@@ -20,12 +20,12 @@ function createTransporter(settings: Settings): Transporter | null {
   }
 
   return nodemailer.createTransport({
-    host: settings.email_smtp_host,
+    host: settings.email_smtp_host?.trim(),
     port: parseInt(settings.email_smtp_port || '587', 10),
     secure: settings.email_smtp_port === '465',
     auth: {
-      user: settings.email_smtp_user,
-      pass: settings.email_smtp_pass
+      user: settings.email_smtp_user?.trim(),
+      pass: settings.email_smtp_pass?.trim()
     }
   })
 }

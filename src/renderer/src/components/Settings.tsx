@@ -25,7 +25,7 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
     gemini_cli_path: '',
     gemini_api_key: '',
     codex_cli_path: '',
-    auto_launch: 'false'
+    auto_launch: 'true'
   })
 
   const [saving, setSaving] = useState(false)
@@ -57,7 +57,7 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
         gemini_cli_path: settings.gemini_cli_path || '',
         gemini_api_key: settings.gemini_api_key || '',
         codex_cli_path: settings.codex_cli_path || '',
-        auto_launch: settings.auto_launch || 'false'
+        auto_launch: settings.auto_launch ?? 'true'
       })
       setHasUnsavedChanges(false)
     }
@@ -77,7 +77,7 @@ export default function Settings({ onUnsavedChange }: SettingsProps) {
       formData.gemini_cli_path !== (settings.gemini_cli_path || '') ||
       formData.gemini_api_key !== (settings.gemini_api_key || '') ||
       formData.codex_cli_path !== (settings.codex_cli_path || '') ||
-      formData.auto_launch !== (settings.auto_launch || 'false')
+      formData.auto_launch !== (settings.auto_launch ?? 'true')
     )
   }, [formData, settings])
 
