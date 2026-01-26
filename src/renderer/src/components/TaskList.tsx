@@ -135,9 +135,21 @@ export default function TaskList({
                          }`}>
                            {task.cli_tool}
                          </span>
-                         <span className="text-xs text-gray-400 flex items-center gap-0.5">
+                       <span className="text-xs text-gray-400 flex items-center gap-0.5 ml-1">
                            <Clock className="w-3 h-3" />
-                           {task.cron_expression}
+                           {(() => {
+                             const params = parseCronToSimple(task.cron_expression || '')
+                             if (params.mode === 'advanced') return task.cron_expression
+                             return getScheduleDescription(
+                               params.frequency,
+                               params.intervalValue,
+                               params.intervalUnit,
+                               params.time,
+                               params.weekdays,
+                               task.week_interval || 1,
+                               params.monthDay
+                             )
+                           })()}
                          </span>
                        </div>
                      </div>
