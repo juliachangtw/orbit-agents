@@ -18,6 +18,7 @@ const api: ElectronApi = {
       'task:run-now',
       'log:list',
       'log:get',
+      'log:delete',
       'settings:get',
       'settings:update',
       'settings:test-email',

@@ -5,8 +5,9 @@ import { useExecutionLogs, useExecutionLog } from '../hooks/useApi'
 import type { ExecutionLogWithTask } from '../../../shared/types'
 
 export default function ExecutionLog() {
-  const { logs, loading, error } = useExecutionLogs(undefined, 200)
+  const { logs, loading, error, deleteLogs } = useExecutionLogs(undefined, 200)
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null)
+  const [checkedLogIds, setCheckedLogIds] = useState<Set<string>>(new Set())
 
   // Auto-select first log when logs load
   useEffect(() => {
@@ -16,6 +17,43 @@ export default function ExecutionLog() {
   }, [logs, selectedLogId])
 
   const selectedLog = logs.find(l => l.id === selectedLogId) || null
+
+  const handleCheck = (id: string, checked: boolean) => {
+    const newChecked = new Set(checkedLogIds)
+    if (checked) {
+      newChecked.add(id)
+    } else {
+      newChecked.delete(id)
+    }
+    setCheckedLogIds(newChecked)
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setCheckedLogIds(new Set(logs.map(l => l.id)))
+    } else {
+      setCheckedLogIds(new Set())
+    }
+  }
+
+  const handleDeleteSelected = async () => {
+    if (checkedLogIds.size === 0) return
+    if (!confirm(`Are you sure you want to delete ${checkedLogIds.size} logs?`)) return
+
+    const idsToDelete = Array.from(checkedLogIds)
+    await deleteLogs(idsToDelete)
+    setCheckedLogIds(new Set())
+    
+    // If selected log was deleted, select the first available one
+    if (selectedLogId && idsToDelete.includes(selectedLogId)) {
+      const remainingLogs = logs.filter(l => !idsToDelete.includes(l.id))
+      if (remainingLogs.length > 0) {
+        setSelectedLogId(remainingLogs[0].id)
+      } else {
+        setSelectedLogId(null)
+      }
+    }
+  }
 
   if (loading) {
     return (
@@ -40,8 +78,25 @@ export default function ExecutionLog() {
       {/* Left Panel - Log List */}
       <div className="w-80 border-r border-gray-200/60 bg-white rounded-tl-2xl flex flex-col">
         {/* List Header */}
-        <div className="px-4 py-3 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-900">Execution Logs</h2>
+        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+              checked={logs.length > 0 && checkedLogIds.size === logs.length}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+              disabled={logs.length === 0}
+            />
+            <h2 className="text-sm font-semibold text-gray-900">Execution Logs</h2>
+          </div>
+          {checkedLogIds.size > 0 && (
+            <button
+              onClick={handleDeleteSelected}
+              className="text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors"
+            >
+              Delete ({checkedLogIds.size})
+            </button>
+          )}
         </div>
 
         {/* Log List */}
@@ -60,6 +115,8 @@ export default function ExecutionLog() {
                   key={log.id}
                   log={log}
                   isSelected={selectedLogId === log.id}
+                  isChecked={checkedLogIds.has(log.id)}
+                  onCheck={(checked) => handleCheck(log.id, checked)}
                   onClick={() => setSelectedLogId(log.id)}
                 />
               ))}
@@ -85,10 +142,12 @@ export default function ExecutionLog() {
 interface LogListItemProps {
   log: ExecutionLogWithTask
   isSelected: boolean
+  isChecked: boolean
+  onCheck: (checked: boolean) => void
   onClick: () => void
 }
 
-function LogListItem({ log, isSelected, onClick }: LogListItemProps) {
+function LogListItem({ log, isSelected, isChecked, onCheck, onClick }: LogListItemProps) {
   const statusColors = {
     running: 'bg-blue-500',
     success: 'bg-emerald-500',
@@ -96,15 +155,24 @@ function LogListItem({ log, isSelected, onClick }: LogListItemProps) {
   }
 
   return (
-    <button
-      onClick={onClick}
-      className={`w-full text-left px-4 py-3 transition-colors ${
+    <div
+      className={`w-full flex items-center px-4 py-3 transition-colors ${
         isSelected
           ? 'bg-violet-50 border-l-2 border-violet-500'
           : 'hover:bg-gray-50 border-l-2 border-transparent'
       }`}
     >
-      <div className="flex items-start gap-3">
+      <input
+        type="checkbox"
+        className="mr-3 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+        checked={isChecked}
+        onChange={(e) => onCheck(e.target.checked)}
+        onClick={(e) => e.stopPropagation()}
+      />
+      <button 
+        onClick={onClick}
+        className="flex-1 flex items-start gap-3 text-left min-w-0"
+      >
         {/* Status indicator */}
         <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${statusColors[log.status]}`}>
           {log.status === 'running' && (
@@ -134,8 +202,8 @@ function LogListItem({ log, isSelected, onClick }: LogListItemProps) {
         }`}>
           {log.status === 'running' ? 'Running' : log.status === 'success' ? 'Done' : 'Failed'}
         </span>
-      </div>
-    </button>
+      </button>
+    </div>
   )
 }
 

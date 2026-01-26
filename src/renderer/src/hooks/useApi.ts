@@ -120,7 +120,17 @@ export function useExecutionLogs(taskId?: string, limit = 100) {
     }
   }, [])
 
-  return { logs, loading, error, fetchLogs }
+  const deleteLogs = useCallback(async (ids: string[]) => {
+    try {
+      await api.invoke('log:delete', ids)
+      setLogs((prev) => prev.filter((l) => !ids.includes(l.id)))
+    } catch (err) {
+      console.error('Failed to delete logs:', err)
+      setError(err instanceof Error ? err.message : 'Failed to delete logs')
+    }
+  }, [])
+
+  return { logs, loading, error, fetchLogs, deleteLogs }
 }
 
 export function useExecutionLog(id: string) {

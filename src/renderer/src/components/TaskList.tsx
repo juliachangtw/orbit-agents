@@ -137,10 +137,10 @@ function TaskCard({
       schedule.intervalUnit,
       schedule.time,
       schedule.weekdays,
-      schedule.weekInterval,
+      task.week_interval ?? schedule.weekInterval,
       schedule.monthDay
     )
-  }, [task.cron_expression])
+  }, [task.cron_expression, task.week_interval])
 
   return (
     <div
@@ -193,13 +193,12 @@ function TaskCard({
       <div className="flex items-center gap-2 mb-4">
         <span
           className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-            task.output_type === 'email' || task.output_type === 'both'
+            task.output_type === 'both'
               ? 'bg-blue-100 text-blue-700'
               : 'bg-gray-100 text-gray-600'
           }`}
         >
           {task.output_type === 'log' && 'Log Only'}
-          {task.output_type === 'email' && 'Email'}
           {task.output_type === 'both' && 'Log + Email'}
         </span>
         {task.mcp_tools && JSON.parse(task.mcp_tools).length > 0 && (

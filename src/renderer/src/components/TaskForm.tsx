@@ -42,7 +42,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
   const [intervalUnit, setIntervalUnit] = useState<'minutes' | 'hours'>(initialSchedule.intervalUnit)
   const [scheduleTime, setScheduleTime] = useState(initialSchedule.time)
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>(initialSchedule.weekdays)
-  const [weekInterval, setWeekInterval] = useState(initialSchedule.weekInterval)
+  const [weekInterval, setWeekInterval] = useState(task?.week_interval || initialSchedule.weekInterval)
   const [monthDay, setMonthDay] = useState(initialSchedule.monthDay)
 
   const [formData, setFormData] = useState({
@@ -54,8 +54,8 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
     model: (task?.model || 'sonnet') as ModelType,
     mcp_tools: task?.mcp_tools ? JSON.parse(task.mcp_tools) : [] as string[],
     attachments: task?.attachments ? JSON.parse(task.attachments) : [] as string[],
-    output_type: (task?.output_type || 'log') as 'log' | 'email' | 'both',
-    email_to: task?.email_to || '',
+    output_type: (task?.output_type || 'log') as 'log' | 'both',
+    week_interval: task?.week_interval ?? 1,
     enabled: task ? task.enabled === 1 : true
   })
 
@@ -63,7 +63,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
   useEffect(() => {
     if (scheduleMode === 'simple') {
       const newCron = simpleToCron(frequency, intervalValue, intervalUnit, scheduleTime, selectedWeekdays, weekInterval, monthDay)
-      setFormData(prev => ({ ...prev, cron_expression: newCron }))
+      setFormData(prev => ({ ...prev, cron_expression: newCron, week_interval: weekInterval }))
     }
   }, [scheduleMode, frequency, intervalValue, intervalUnit, scheduleTime, selectedWeekdays, weekInterval, monthDay])
 
@@ -123,6 +123,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
         attachments: formData.attachments.length > 0 ? formData.attachments : undefined,
         output_type: formData.output_type,
         email_to: formData.email_to || undefined,
+        week_interval: weekInterval,
         enabled: formData.enabled
       }
 
@@ -372,16 +373,6 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                           ))}
                         </div>
                       </div>
-
-                      {/* Warning for multi-week intervals */}
-                      {weekInterval > 1 && (
-                        <div className="flex items-start gap-2 text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded-md">
-                          <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                          </svg>
-                          <span>Multi-week intervals run weekly; use execution logs to track cycles.</span>
-                        </div>
-                      )}
                     </div>
                   )}
 
@@ -660,7 +651,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                 Output
               </label>
               <div className="flex gap-2">
-                {(['log', 'email', 'both'] as const).map((type) => (
+                {(['log', 'both'] as const).map((type) => (
                   <label
                     key={type}
                     className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border rounded-lg cursor-pointer transition-all text-xs font-medium ${
@@ -677,13 +668,12 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          output_type: e.target.value as 'log' | 'email' | 'both'
+                          output_type: e.target.value as 'log' | 'both'
                         }))
                       }
                       className="sr-only"
                     />
                     {type === 'log' && 'Log Only'}
-                    {type === 'email' && 'Email'}
                     {type === 'both' && 'Log + Email'}
                   </label>
                 ))}
@@ -691,7 +681,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
             </div>
 
             {/* Email To (conditional) */}
-            {(formData.output_type === 'email' || formData.output_type === 'both') && (
+            {formData.output_type === 'both' && (
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">
                   Email To <span className="text-red-500">*</span>

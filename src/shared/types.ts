@@ -11,8 +11,9 @@ export interface Task {
   model: ModelType | null // AI model to use
   mcp_tools: string | null // JSON array of tool patterns
   attachments: string | null // JSON array of file paths
-  output_type: 'log' | 'email' | 'both'
+  output_type: 'log' | 'both'
   email_to: string | null
+  week_interval: number // Default 1
   enabled: number // 0 or 1
   created_at: string
   updated_at: string
@@ -27,8 +28,9 @@ export interface CreateTaskInput {
   model?: ModelType
   mcp_tools?: string[]
   attachments?: string[] // Array of file paths
-  output_type?: 'log' | 'email' | 'both'
+  output_type?: 'log' | 'both'
   email_to?: string
+  week_interval?: number
   enabled?: boolean
 }
 
@@ -106,6 +108,7 @@ export interface IpcApi {
   // Log operations
   'log:list': (taskId?: string, limit?: number) => Promise<ExecutionLogWithTask[]>
   'log:get': (id: string) => Promise<ExecutionLog | null>
+  'log:delete': (ids: string[]) => Promise<void>
 
   // Settings operations
   'settings:get': () => Promise<Settings>

@@ -36,6 +36,7 @@ export function initDatabase(): Database.Database {
       attachments TEXT,
       output_type TEXT DEFAULT 'log',
       email_to TEXT,
+      week_interval INTEGER DEFAULT 1,
       enabled INTEGER DEFAULT 1,
       created_at TEXT,
       updated_at TEXT
@@ -78,6 +79,13 @@ export function initDatabase(): Database.Database {
   // Migration: Add cli_tool column if not exists
   try {
     db.exec(`ALTER TABLE tasks ADD COLUMN cli_tool TEXT DEFAULT 'claude'`)
+  } catch {
+    // Column already exists, ignore
+  }
+
+  // Migration: Add week_interval column if not exists
+  try {
+    db.exec(`ALTER TABLE tasks ADD COLUMN week_interval INTEGER DEFAULT 1`)
   } catch {
     // Column already exists, ignore
   }
@@ -126,14 +134,15 @@ export function createTask(input: CreateTaskInput): Task {
     attachments: input.attachments ? JSON.stringify(input.attachments) : null,
     output_type: input.output_type ?? 'log',
     email_to: input.email_to ?? null,
+    week_interval: input.week_interval ?? 1,
     enabled: input.enabled !== false ? 1 : 0,
     created_at: now,
     updated_at: now
   }
 
   db.prepare(`
-    INSERT INTO tasks (id, name, description, cron_expression, prompt, cli_tool, model, mcp_tools, attachments, output_type, email_to, enabled, created_at, updated_at)
-    VALUES (@id, @name, @description, @cron_expression, @prompt, @cli_tool, @model, @mcp_tools, @attachments, @output_type, @email_to, @enabled, @created_at, @updated_at)
+    INSERT INTO tasks (id, name, description, cron_expression, prompt, cli_tool, model, mcp_tools, attachments, output_type, email_to, week_interval, enabled, created_at, updated_at)
+    VALUES (@id, @name, @description, @cron_expression, @prompt, @cli_tool, @model, @mcp_tools, @attachments, @output_type, @email_to, @week_interval, @enabled, @created_at, @updated_at)
   `).run(task)
 
   return task
@@ -165,6 +174,7 @@ export function updateTask(input: UpdateTaskInput): Task {
       : existing.attachments,
     output_type: input.output_type ?? existing.output_type,
     email_to: input.email_to !== undefined ? (input.email_to ?? null) : existing.email_to,
+    week_interval: input.week_interval !== undefined ? input.week_interval : existing.week_interval,
     enabled: input.enabled !== undefined ? (input.enabled ? 1 : 0) : existing.enabled,
     updated_at: now
   }
@@ -181,6 +191,7 @@ export function updateTask(input: UpdateTaskInput): Task {
       attachments = @attachments,
       output_type = @output_type,
       email_to = @email_to,
+      week_interval = @week_interval,
       enabled = @enabled,
       updated_at = @updated_at
     WHERE id = @id
@@ -295,6 +306,12 @@ export function getExecutionLogs(taskId?: string, limit = 100): ExecutionLogWith
 export function getExecutionLogById(id: string): ExecutionLog | null {
   const db = getDatabase()
   return db.prepare('SELECT * FROM execution_logs WHERE id = ?').get(id) as ExecutionLog | null
+}
+
+export function deleteExecutionLogs(ids: string[]): void {
+  const db = getDatabase()
+  const placeholders = ids.map(() => '?').join(',')
+  db.prepare(`DELETE FROM execution_logs WHERE id IN (${placeholders})`).run(...ids)
 }
 
 // ============ Settings Operations ============

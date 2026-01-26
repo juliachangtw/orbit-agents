@@ -168,7 +168,7 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
     notifyExecutionUpdate(updatedLog)
 
     // Send email if configured
-    if ((task.output_type === 'email' || task.output_type === 'both') && task.email_to) {
+    if (task.output_type === 'both' && task.email_to) {
       try {
         await sendTaskResultEmail(task, updatedLog)
       } catch (emailError) {
@@ -207,6 +207,20 @@ export function scheduleTask(task: Task): void {
     // Re-fetch task to ensure we have latest data
     const currentTask = getTaskById(task.id)
     if (currentTask && currentTask.enabled) {
+      // Check week interval
+      if (currentTask.week_interval && currentTask.week_interval > 1) {
+        const createdAt = new Date(currentTask.created_at)
+        const now = new Date()
+        const oneWeek = 7 * 24 * 60 * 60 * 1000
+        // Calculate weeks difference
+        const weeksDiff = Math.floor((now.getTime() - createdAt.getTime()) / oneWeek)
+        
+        if (weeksDiff % currentTask.week_interval !== 0) {
+          console.log(`[Scheduler] Skipping task ${currentTask.name} (${currentTask.id}) due to week interval ${currentTask.week_interval} (weeks diff: ${weeksDiff})`)
+          return
+        }
+      }
+
       executeTask(currentTask)
     }
   })

@@ -12,6 +12,7 @@ import {
   toggleTask,
   getExecutionLogs,
   getExecutionLogById,
+  deleteExecutionLogs,
   getAllSettings,
   updateSettings
 } from './database'
@@ -119,6 +120,10 @@ function registerIpcHandlers(): void {
 
   ipcMain.handle('log:get', (_, id: string) => {
     return getExecutionLogById(id)
+  })
+
+  ipcMain.handle('log:delete', (_, ids: string[]) => {
+    return deleteExecutionLogs(ids)
   })
 
   // Settings handlers
