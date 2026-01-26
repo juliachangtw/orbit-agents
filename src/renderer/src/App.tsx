@@ -34,6 +34,7 @@ export default function App() {
   const handleNewTask = () => {
     setEditingTask(null)
     setShowTaskForm(true)
+    setCurrentView('tasks')
   }
 
   const handleCloseForm = () => {
