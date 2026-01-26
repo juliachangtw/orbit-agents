@@ -3,7 +3,7 @@ import React from 'react'
 
 export default function WelcomePage() {
   return (
-    <div className="min-h-screen bg-[#F8F7F6] flex flex-col items-center justify-center relative overflow-hidden py-10">
+    <div className="min-h-screen bg-[#F8F7F6] flex flex-col relative overflow-hidden">
       {/* Background Decor Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
         <style>
@@ -77,7 +77,7 @@ export default function WelcomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+      <main className="flex-1 flex flex-col items-center justify-center w-full max-w-4xl mx-auto px-6 py-12 relative z-10 text-center">
         {/* Logo/Icon */}
         <div className="mb-8 flex justify-center">
           <div className="relative w-24 h-24 flex items-center justify-center bg-white rounded-3xl shadow-xl shadow-blue-900/5 ring-1 ring-black/5">
@@ -161,10 +161,11 @@ export default function WelcomePage() {
           ))}
         </div>
         
-        <div className="mt-16 text-sm text-gray-400">
-          &copy; {new Date().getFullYear()} Orbit Agents. All rights reserved.
-        </div>
-      </div>
+      </main>
+
+      <footer className="relative z-10 py-6 text-center text-sm text-gray-400">
+        &copy; {new Date().getFullYear()} Orbit Agents. All rights reserved.
+      </footer>
     </div>
   )
 }
