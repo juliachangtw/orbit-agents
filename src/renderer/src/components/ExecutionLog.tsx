@@ -58,7 +58,7 @@ export default function ExecutionLog() {
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center bg-white rounded-tl-2xl">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     )
   }
@@ -74,25 +74,28 @@ export default function ExecutionLog() {
   }
 
   return (
-    <div className="h-full flex">
+    <div className="flex h-full gap-8">
       {/* Left Panel - Log List */}
-      <div className="w-80 border-r border-gray-200/60 bg-white rounded-tl-2xl flex flex-col">
+      <div className="w-80 flex-shrink-0 flex flex-col gap-1">
         {/* List Header */}
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              className="rounded border-gray-300 text-violet-600 focus:ring-violet-500"
-              checked={logs.length > 0 && checkedLogIds.size === logs.length}
-              onChange={(e) => handleSelectAll(e.target.checked)}
-              disabled={logs.length === 0}
-            />
-            <h2 className="text-sm font-semibold text-gray-900">Execution Logs</h2>
+        <div className="mb-4 px-2 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Execution Logs</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <input
+                type="checkbox"
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                checked={logs.length > 0 && checkedLogIds.size === logs.length}
+                onChange={(e) => handleSelectAll(e.target.checked)}
+                disabled={logs.length === 0}
+              />
+              <p className="text-xs text-gray-400">Select all</p>
+            </div>
           </div>
           {checkedLogIds.size > 0 && (
             <button
               onClick={handleDeleteSelected}
-              className="text-sm font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors"
+              className="text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors"
             >
               Delete ({checkedLogIds.size})
             </button>
@@ -100,16 +103,16 @@ export default function ExecutionLog() {
         </div>
 
         {/* Log List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto pr-2 space-y-2">
           {logs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400 px-4">
-              <svg className="w-10 h-10 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <p className="text-sm text-center">No execution logs yet.<br />Run a task to see logs here.</p>
+            <div className="text-center py-12 px-4 border-2 border-dashed border-gray-200 rounded-xl">
+               <svg className="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+               </svg>
+               <p className="text-sm text-gray-500">No logs found.</p>
             </div>
           ) : (
-            <div className="py-1">
+            <>
               {logs.map((log) => (
                 <LogListItem
                   key={log.id}
@@ -120,18 +123,24 @@ export default function ExecutionLog() {
                   onClick={() => setSelectedLogId(log.id)}
                 />
               ))}
-            </div>
+            </>
           )}
         </div>
       </div>
 
       {/* Right Panel - Log Detail */}
-      <div className="flex-1 bg-white flex flex-col overflow-hidden min-w-0">
+      <div className="flex-1 bg-gray-50/50 rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden min-w-0">
         {selectedLog ? (
           <LogDetail log={selectedLog} />
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-400">
-            <p className="text-sm">Select a log to view details</p>
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center">
+            <div className="w-16 h-16 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="text-gray-900 font-medium mb-1">No Log Selected</h3>
+            <p className="text-sm max-w-xs mx-auto">Select an execution log from the list to view its details and output.</p>
           </div>
         )}
       </div>
@@ -156,21 +165,21 @@ function LogListItem({ log, isSelected, isChecked, onCheck, onClick }: LogListIt
 
   return (
     <div
-      className={`w-full flex items-center px-4 py-3 transition-colors ${
-        isSelected
-          ? 'bg-violet-50 border-l-2 border-violet-500'
-          : 'hover:bg-gray-50 border-l-2 border-transparent'
+      onClick={onClick}
+      className={`group w-full flex items-center p-3 rounded-xl transition-all border cursor-pointer relative ${
+        isSelected 
+          ? 'bg-white shadow-md border-blue-200 ring-1 ring-blue-100 z-10' 
+          : 'bg-white/40 border-transparent hover:bg-white hover:shadow-sm hover:border-gray-200'
       }`}
     >
       <input
         type="checkbox"
-        className="mr-3 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+        className="mr-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         checked={isChecked}
         onChange={(e) => onCheck(e.target.checked)}
         onClick={(e) => e.stopPropagation()}
       />
-      <button 
-        onClick={onClick}
+      <div 
         className="flex-1 flex items-start gap-3 text-left min-w-0"
       >
         {/* Status indicator */}
@@ -202,7 +211,7 @@ function LogListItem({ log, isSelected, isChecked, onCheck, onClick }: LogListIt
         }`}>
           {log.status === 'running' ? 'Running' : log.status === 'success' ? 'Done' : 'Failed'}
         </span>
-      </button>
+      </div>
     </div>
   )
 }
@@ -316,9 +325,9 @@ function LogDetail({ log: initialLog }: LogDetailProps) {
               prose-h2:text-lg prose-h2:mt-5 prose-h2:mb-3
               prose-h3:text-base prose-h3:mt-4 prose-h3:mb-2
               prose-p:text-gray-600 prose-p:leading-relaxed prose-p:break-words
-              prose-a:text-violet-600 prose-a:no-underline hover:prose-a:underline prose-a:break-all
+              prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:break-all
               prose-strong:text-gray-900 prose-strong:font-semibold
-              prose-code:text-violet-600 prose-code:bg-violet-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-normal prose-code:before:content-none prose-code:after:content-none prose-code:break-all
+              prose-code:text-blue-600 prose-code:bg-blue-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-normal prose-code:before:content-none prose-code:after:content-none prose-code:break-all
               prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-pre:text-sm
               prose-ul:text-gray-600 prose-ol:text-gray-600
               prose-li:marker:text-gray-400

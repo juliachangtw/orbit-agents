@@ -1,19 +1,36 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { parseCronToSimple, getScheduleDescription } from '../utils/cron'
 import { useTasks } from '../hooks/useApi'
 import type { Task } from '../../../shared/types'
+import TaskForm from './TaskForm'
+import { Play, Pause, Trash2, Clock, Terminal, ChevronRight, Plus } from 'lucide-react'
 
 interface TaskListProps {
   onEditTask: (task: Task) => void
   onNewTask: () => void
+  editingTask: Task | null
+  showTaskForm: boolean
+  onCloseForm: () => void
+  onTaskSaved: () => void
 }
 
-export default function TaskList({ onEditTask }: TaskListProps) {
+export default function TaskList({ 
+  onEditTask, 
+  onNewTask, 
+  editingTask, 
+  showTaskForm, 
+  onCloseForm, 
+  onTaskSaved 
+}: TaskListProps) {
   const { tasks, loading, error, toggleTask, deleteTask, runTaskNow } = useTasks()
   const [runningTasks, setRunningTasks] = useState<Set<string>>(new Set())
   const [deletingTask, setDeletingTask] = useState<string | null>(null)
+  
+  // Local selection state to sync with App props
+  const selectedTaskId = editingTask?.id
 
-  const handleToggle = async (task: Task) => {
+  const handleToggle = async (e: React.MouseEvent, task: Task) => {
+    e.stopPropagation()
     try {
       await toggleTask(task.id)
     } catch (err) {
@@ -21,7 +38,8 @@ export default function TaskList({ onEditTask }: TaskListProps) {
     }
   }
 
-  const handleRunNow = async (taskId: string) => {
+  const handleRunNow = async (e: React.MouseEvent, taskId: string) => {
+    e.stopPropagation()
     setRunningTasks((prev) => new Set(prev).add(taskId))
     try {
       await runTaskNow(taskId)
@@ -36,7 +54,8 @@ export default function TaskList({ onEditTask }: TaskListProps) {
     }
   }
 
-  const handleDelete = async (taskId: string) => {
+  const handleDelete = async (e: React.MouseEvent, taskId: string) => {
+    e.stopPropagation()
     if (!confirm('Are you sure you want to delete this task?')) {
       return
     }
@@ -44,6 +63,10 @@ export default function TaskList({ onEditTask }: TaskListProps) {
     setDeletingTask(taskId)
     try {
       await deleteTask(taskId)
+      // If deleted task was selected, close form
+      if (selectedTaskId === taskId) {
+        onCloseForm()
+      }
     } catch (err) {
       console.error('Failed to delete task:', err)
     } finally {
@@ -53,236 +76,144 @@ export default function TaskList({ onEditTask }: TaskListProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 m-8">
         {error}
       </div>
     )
   }
 
-  if (tasks.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <svg
-          className="mx-auto h-12 w-12 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-          />
-        </svg>
-        <h3 className="mt-4 font-medium text-gray-900">No tasks yet</h3>
-        <p className="mt-2 text-sm text-gray-500">Create your first scheduled AI task to get started.</p>
-      </div>
-    )
-  }
-
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {tasks.map((task) => (
-        <TaskCard
-          key={task.id}
-          task={task}
-          isRunning={runningTasks.has(task.id)}
-          isDeleting={deletingTask === task.id}
-          onEdit={() => onEditTask(task)}
-          onToggle={() => handleToggle(task)}
-          onRunNow={() => handleRunNow(task.id)}
-          onDelete={() => handleDelete(task.id)}
-        />
-      ))}
-    </div>
-  )
-}
-
-interface TaskCardProps {
-  task: Task
-  isRunning: boolean
-  isDeleting: boolean
-  onEdit: () => void
-  onToggle: () => void
-  onRunNow: () => void
-  onDelete: () => void
-}
-
-function TaskCard({
-  task,
-  isRunning,
-  isDeleting,
-  onEdit,
-  onToggle,
-  onRunNow,
-  onDelete
-}: TaskCardProps) {
-  const isEnabled = task.enabled === 1
-
-  const description = useMemo(() => {
-    const schedule = parseCronToSimple(task.cron_expression)
-    if (schedule.mode === 'advanced') return null
-    return getScheduleDescription(
-      schedule.frequency,
-      schedule.intervalValue,
-      schedule.intervalUnit,
-      schedule.time,
-      schedule.weekdays,
-      task.week_interval ?? schedule.weekInterval,
-      schedule.monthDay
-    )
-  }, [task.cron_expression, task.week_interval])
-
-  return (
-    <div
-      className={`bg-white rounded-xl border p-5 transition-all ${
-        isEnabled ? 'border-gray-200 shadow-sm' : 'border-gray-100 opacity-60'
-      }`}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 truncate">{task.name}</h3>
-          {task.description && (
-            <p className="text-sm text-gray-500 mt-1 line-clamp-2">{task.description}</p>
-          )}
+    <div className="flex h-full gap-8">
+      {/* Left Sidebar - Task List */}
+      <div className="w-80 flex-shrink-0 flex flex-col gap-1">
+        <div className="mb-4 px-2 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Tasks</h2>
+            <p className="text-xs text-gray-400 mt-1">Manage automated workflows</p>
+          </div>
         </div>
-        <button
-          onClick={onToggle}
-          className={`ml-3 relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            isEnabled ? 'bg-primary-600' : 'bg-gray-200'
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              isEnabled ? 'translate-x-6' : 'translate-x-1'
-            }`}
-          />
-        </button>
-      </div>
 
-      {/* Schedule */}
-      <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        {description ? (
-          <span className="font-medium text-gray-700">{description}</span>
-        ) : (
-          <code className="bg-gray-100 px-2 py-0.5 rounded text-sm font-mono" title="Custom Cron Expression">
-            {task.cron_expression}
-          </code>
-        )}
-      </div>
-
-      {/* Output Type Badge */}
-      <div className="flex items-center gap-2 mb-4">
-        <span
-          className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
-            task.output_type === 'both'
-              ? 'bg-blue-100 text-blue-700'
-              : 'bg-gray-100 text-gray-600'
-          }`}
-        >
-          {task.output_type === 'log' && 'Log Only'}
-          {task.output_type === 'both' && 'Log + Email'}
-        </span>
-        {task.mcp_tools && JSON.parse(task.mcp_tools).length > 0 && (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700">
-            MCP Tools
-          </span>
-        )}
-      </div>
-
-      {/* Prompt Preview */}
-      <div className="bg-gray-50 rounded-lg p-3 mb-4">
-        <p className="text-sm text-gray-500 font-medium mb-1">Prompt</p>
-        <p className="text-sm text-gray-700 line-clamp-3">{task.prompt}</p>
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-        <button
-          onClick={onRunNow}
-          disabled={isRunning || isDeleting}
-          className="flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50"
-        >
-          {isRunning ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
-              Running...
-            </>
+        <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+          {tasks.length === 0 ? (
+            <div className="text-center py-12 px-4 border-2 border-dashed border-gray-200 rounded-xl">
+               <p className="text-sm text-gray-500">No tasks found.</p>
+               <button onClick={onNewTask} className="mt-2 text-blue-600 text-sm font-medium hover:underline">Create one</button>
+            </div>
           ) : (
-            <>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              Run Now
-            </>
+            tasks.map((task) => {
+               const isSelected = selectedTaskId === task.id
+               const isEnabled = task.enabled === 1
+               
+               return (
+                 <div
+                   key={task.id}
+                   onClick={() => onEditTask(task)}
+                   className={`group w-full text-left p-3 rounded-xl transition-all border cursor-pointer relative ${
+                     isSelected 
+                       ? 'bg-white shadow-md border-blue-200 ring-1 ring-blue-100 z-10' 
+                       : 'bg-white/40 border-transparent hover:bg-white hover:shadow-sm hover:border-gray-200'
+                   }`}
+                 >
+                   <div className="flex items-start justify-between mb-2">
+                     <div className="flex-1 min-w-0 pr-2">
+                       <h3 className={`font-semibold text-sm truncate ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
+                         {task.name}
+                       </h3>
+                       <div className="flex items-center gap-1.5 mt-1">
+                         <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            task.cli_tool === 'claude' ? 'bg-orange-100 text-orange-700' :
+                            task.cli_tool === 'gemini' ? 'bg-teal-100 text-teal-700' :
+                            'bg-indigo-100 text-indigo-700'
+                         }`}>
+                           {task.cli_tool}
+                         </span>
+                         <span className="text-xs text-gray-400 flex items-center gap-0.5">
+                           <Clock className="w-3 h-3" />
+                           {task.cron_expression}
+                         </span>
+                       </div>
+                     </div>
+                     
+                     <div className="flex flex-col gap-1">
+                        <button
+                          onClick={(e) => handleToggle(e, task)}
+                          className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${
+                            isEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                              isEnabled ? 'translate-x-3.5' : 'translate-x-0.5'
+                            }`}
+                          />
+                        </button>
+                     </div>
+                   </div>
+                   
+                   {/* Hover Actions */}
+                   <div className={`absolute right-2 bottom-2 flex items-center gap-1 transition-opacity ${
+                     isSelected || runningTasks.has(task.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                   }`}>
+                      <button
+                        onClick={(e) => handleRunNow(e, task.id)}
+                        disabled={runningTasks.has(task.id)}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Run Now"
+                      >
+                         {runningTasks.has(task.id) ? (
+                            <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-blue-600 border-t-transparent" />
+                         ) : (
+                            <Play className="w-3.5 h-3.5 fill-current" />
+                         )}
+                      </button>
+                      <button
+                        onClick={(e) => handleDelete(e, task.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                   </div>
+                 </div>
+               )
+            })
           )}
-        </button>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onEdit}
-            disabled={isDeleting}
-            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
-            title="Edit"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-              />
-            </svg>
-          </button>
-          <button
-            onClick={onDelete}
-            disabled={isDeleting || isRunning}
-            className="p-2 text-gray-400 hover:text-red-600 disabled:opacity-50"
-            title="Delete"
-          >
-            {isDeleting ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-            ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-            )}
-          </button>
         </div>
+      </div>
+
+      {/* Right Panel - Content */}
+      <div className="flex-1 bg-gray-50/50 rounded-2xl border border-gray-100 overflow-hidden flex flex-col relative">
+        {showTaskForm ? (
+           <TaskForm 
+             task={editingTask} 
+             onClose={onCloseForm} 
+             onSaved={onTaskSaved} 
+             variant="panel"
+           />
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center">
+            <div className="w-16 h-16 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-center mb-4">
+              <Terminal className="w-8 h-8 text-gray-300" />
+            </div>
+            <h3 className="text-gray-900 font-medium mb-1">No Task Selected</h3>
+            <p className="text-sm max-w-xs mx-auto">Select a task from the list to view details or create a new one.</p>
+            <button
+               onClick={onNewTask}
+               className="mt-6 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-blue-700 hover:shadow-md transition-all flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Create New Task
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

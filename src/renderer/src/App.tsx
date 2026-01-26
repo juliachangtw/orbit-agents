@@ -134,23 +134,30 @@ export default function App() {
         {/* Content Area */}
         <div className="flex-1 overflow-hidden">
           {currentView === 'tasks' && (
-            <div className="h-full bg-white rounded-tl-2xl shadow-sm border-t border-l border-gray-200/60 p-6 overflow-auto">
-              <TaskList key={taskListKey} onEditTask={handleEditTask} onNewTask={handleNewTask} />
+            <div className="h-full bg-white rounded-tl-2xl shadow-sm border-t border-l border-gray-200/60 p-6">
+              <TaskList 
+                key={taskListKey} 
+                onEditTask={handleEditTask} 
+                onNewTask={handleNewTask}
+                editingTask={editingTask}
+                showTaskForm={showTaskForm}
+                onCloseForm={handleCloseForm}
+                onTaskSaved={handleTaskSaved}
+              />
             </div>
           )}
-          {currentView === 'logs' && <ExecutionLog />}
+          {currentView === 'logs' && (
+            <div className="h-full bg-white rounded-tl-2xl shadow-sm border-t border-l border-gray-200/60 p-6">
+              <ExecutionLog />
+            </div>
+          )}
           {currentView === 'settings' && (
-            <div className="h-full bg-white rounded-tl-2xl shadow-sm border-t border-l border-gray-200/60 p-6 overflow-auto">
+            <div className="h-full bg-white rounded-tl-2xl shadow-sm border-t border-l border-gray-200/60 p-6">
               <Settings />
             </div>
           )}
         </div>
       </div>
-
-      {/* Task Form Modal */}
-      {showTaskForm && (
-        <TaskForm task={editingTask} onClose={handleCloseForm} onSaved={handleTaskSaved} />
-      )}
     </div>
   )
 }

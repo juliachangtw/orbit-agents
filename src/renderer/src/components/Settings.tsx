@@ -194,7 +194,7 @@ export default function Settings({}: SettingsProps) {
   if (loading && !isLoaded) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-violet-600 border-t-transparent"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
       </div>
     )
   }
@@ -211,7 +211,7 @@ export default function Settings({}: SettingsProps) {
         }`}
       >
         <div className={`p-2 rounded-lg transition-colors ${
-          isActive ? 'bg-violet-50 text-violet-600' : 'bg-gray-100 text-gray-500 group-hover:bg-white group-hover:text-gray-600'
+          isActive ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500 group-hover:bg-white group-hover:text-gray-600'
         }`}>
           <Icon className="w-5 h-5" />
         </div>
@@ -274,7 +274,7 @@ export default function Settings({}: SettingsProps) {
           <div className="flex items-center gap-2 text-xs">
             {isSaving ? (
               <>
-                <Loader2 className="w-3 h-3 animate-spin text-violet-500" />
+                <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
                 <span className="text-gray-500">Saving changes...</span>
               </>
             ) : lastSaved ? (
@@ -308,8 +308,8 @@ export default function Settings({}: SettingsProps) {
                 </div>
                 <button
                   onClick={() => setFormData(prev => ({ ...prev, auto_launch: prev.auto_launch === 'true' ? 'false' : 'true' }))}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 ${
-                    formData.auto_launch === 'true' ? 'bg-violet-600' : 'bg-gray-200'
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    formData.auto_launch === 'true' ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                 >
                   <span
@@ -339,7 +339,7 @@ export default function Settings({}: SettingsProps) {
                   value={formData.claude_cli_path}
                   onChange={(e) => setFormData(prev => ({ ...prev, claude_cli_path: e.target.value }))}
                   placeholder="~/.local/bin/claude"
-                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                 />
                 <p className="mt-1.5 text-xs text-gray-400">Leave empty to use the default system path.</p>
               </div>
@@ -352,7 +352,7 @@ export default function Settings({}: SettingsProps) {
                     value={formData.claude_session_token}
                     onChange={(e) => setFormData(prev => ({ ...prev, claude_session_token: e.target.value }))}
                     placeholder="CLAUDE_CODE_SESSION_ACCESS_TOKEN"
-                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors font-mono"
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors font-mono"
                   />
                 </div>
                 <p className="mt-1.5 text-xs text-gray-400">Required for file uploads. You can find this in your browser cookies on claude.ai.</p>
@@ -362,7 +362,7 @@ export default function Settings({}: SettingsProps) {
                 <button
                   onClick={handleTestClaude}
                   disabled={testingClaude}
-                  className="px-4 py-2 text-xs font-medium text-violet-700 bg-violet-50 border border-violet-200 rounded-lg hover:bg-violet-100 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                  className="px-4 py-2 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50 flex items-center gap-2 transition-colors"
                 >
                   {testingClaude ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -409,7 +409,7 @@ export default function Settings({}: SettingsProps) {
                   value={formData.gemini_cli_path}
                   onChange={(e) => setFormData(prev => ({ ...prev, gemini_cli_path: e.target.value }))}
                   placeholder="Use default path"
-                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                 />
               </div>
 
@@ -420,7 +420,7 @@ export default function Settings({}: SettingsProps) {
                   value={formData.gemini_api_key}
                   onChange={(e) => setFormData(prev => ({ ...prev, gemini_api_key: e.target.value }))}
                   placeholder="GEMINI_API_KEY"
-                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors font-mono"
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors font-mono"
                 />
                 <p className="mt-1.5 text-xs text-gray-400">Optional if configured in system environment variables.</p>
               </div>
@@ -429,7 +429,7 @@ export default function Settings({}: SettingsProps) {
                 <button
                   onClick={handleTestGemini}
                   disabled={testingGemini}
-                  className="px-4 py-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                  className="px-4 py-2 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50 flex items-center gap-2 transition-colors"
                 >
                   {testingGemini ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -476,7 +476,7 @@ export default function Settings({}: SettingsProps) {
                   value={formData.codex_cli_path}
                   onChange={(e) => setFormData(prev => ({ ...prev, codex_cli_path: e.target.value }))}
                   placeholder="Use default path"
-                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                 />
               </div>
 
@@ -484,7 +484,7 @@ export default function Settings({}: SettingsProps) {
                 <button
                   onClick={handleTestCodex}
                   disabled={testingCodex}
-                  className="px-4 py-2 text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                  className="px-4 py-2 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50 flex items-center gap-2 transition-colors"
                 >
                   {testingCodex ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -532,7 +532,7 @@ export default function Settings({}: SettingsProps) {
                     value={formData.email_smtp_host}
                     onChange={(e) => setFormData(prev => ({ ...prev, email_smtp_host: e.target.value }))}
                     placeholder="smtp.gmail.com"
-                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                   />
                 </div>
                 <div>
@@ -542,7 +542,7 @@ export default function Settings({}: SettingsProps) {
                     value={formData.email_smtp_port}
                     onChange={(e) => setFormData(prev => ({ ...prev, email_smtp_port: e.target.value }))}
                     placeholder="587"
-                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                   />
                 </div>
               </div>
@@ -554,7 +554,7 @@ export default function Settings({}: SettingsProps) {
                   value={formData.email_smtp_user}
                   onChange={(e) => setFormData(prev => ({ ...prev, email_smtp_user: e.target.value }))}
                   placeholder="your-email@gmail.com"
-                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                 />
               </div>
 
@@ -565,7 +565,7 @@ export default function Settings({}: SettingsProps) {
                   value={formData.email_smtp_pass}
                   onChange={(e) => setFormData(prev => ({ ...prev, email_smtp_pass: e.target.value }))}
                   placeholder="App password"
-                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                 />
               </div>
 
@@ -576,7 +576,7 @@ export default function Settings({}: SettingsProps) {
                   value={formData.email_from}
                   onChange={(e) => setFormData(prev => ({ ...prev, email_from: e.target.value }))}
                   placeholder="noreply@yourdomain.com"
-                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                 />
                 <p className="mt-1.5 text-xs text-gray-400">Optional. Default depends on your SMTP provider.</p>
               </div>
@@ -589,7 +589,7 @@ export default function Settings({}: SettingsProps) {
                       value={testEmailAddress}
                       onChange={(e) => setTestEmailAddress(e.target.value)}
                       placeholder="recipient@example.com"
-                      className="flex-1 px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                      className="flex-1 px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                     />
                     <button
                       onClick={handleTestEmail}

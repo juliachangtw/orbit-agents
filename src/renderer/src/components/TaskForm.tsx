@@ -7,6 +7,7 @@ interface TaskFormProps {
   task: Task | null
   onClose: () => void
   onSaved?: () => void
+  variant?: 'modal' | 'panel'
 }
 
 import {
@@ -18,9 +19,7 @@ import {
   type FrequencyType
 } from '../utils/cron'
 
-
-
-export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
+export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: TaskFormProps) {
   const { createTask, updateTask } = useTasks()
   const { listMcps: listClaudeMcps } = useClaudeCli()
   const { listMcps: listGeminiMcps } = useGeminiCli()
@@ -35,6 +34,42 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
   const initialSchedule = useMemo(() => {
     return parseCronToSimple(task?.cron_expression || '0 9 * * *')
   }, [task?.cron_expression])
+
+  // Reset form when task changes
+  useEffect(() => {
+    if (task) {
+        setFormData({
+            name: task.name || '',
+            description: task.description || '',
+            cron_expression: task.cron_expression || '0 9 * * *',
+            prompt: task.prompt || '',
+            cli_tool: (task.cli_tool || 'claude') as 'claude' | 'gemini' | 'codex',
+            model: (task.model || 'sonnet') as ModelType,
+            mcp_tools: task.mcp_tools ? JSON.parse(task.mcp_tools) : [] as string[],
+            attachments: task.attachments ? JSON.parse(task.attachments) : [] as string[],
+            output_type: (task.output_type || 'log') as 'log' | 'both',
+            email_to: task.email_to || '',
+            week_interval: task.week_interval ?? 1,
+            enabled: task.enabled === 1
+        })
+    } else {
+        // Reset to default for new task
+        setFormData({
+            name: '',
+            description: '',
+            cron_expression: '0 9 * * *',
+            prompt: '',
+            cli_tool: 'claude',
+            model: 'sonnet',
+            mcp_tools: [],
+            attachments: [],
+            output_type: 'log',
+            email_to: '',
+            week_interval: 1,
+            enabled: true
+         })
+    }
+  }, [task])
 
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>(initialSchedule.mode)
   const [frequency, setFrequency] = useState<FrequencyType>(initialSchedule.frequency)
@@ -155,25 +190,26 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
     }))
   }
 
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+  const content = (
+      <div className={`${variant === 'modal' ? 'bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden' : 'h-full flex flex-col'}`} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className={`px-6 py-4 border-b border-gray-100 flex items-center justify-between ${variant === 'panel' ? '' : ''}`}>
           <div>
             <h2 className="text-base font-semibold text-gray-900">
               {task ? 'Edit Task' : 'New Task'}
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">Configure your scheduled AI task</p>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          {variant === 'modal' && (
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Form */}
@@ -198,7 +234,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                 placeholder="e.g., Daily Security Report"
               />
             </div>
@@ -212,7 +248,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                 type="text"
                 value={formData.description}
                 onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                 placeholder="Brief description of this task"
               />
             </div>
@@ -265,7 +301,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                         onClick={() => setFrequency(f.value as FrequencyType)}
                         className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-sm font-medium rounded-md border transition-all ${
                           frequency === f.value
-                            ? 'bg-violet-100 border-violet-300 text-violet-700'
+                            ? 'bg-blue-100 border-blue-300 text-blue-700'
                             : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                         }`}
                       >
@@ -285,14 +321,14 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                         max={intervalUnit === 'minutes' ? 59 : 23}
                         value={intervalValue}
                         onChange={(e) => setIntervalValue(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-16 px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 text-center"
+                        className="w-16 px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-center"
                       />
                       <div className="flex bg-white border border-gray-200 rounded-md overflow-hidden">
                         <button
                           type="button"
                           onClick={() => setIntervalUnit('minutes')}
                           className={`px-2 py-1.5 text-sm font-medium transition-colors ${
-                            intervalUnit === 'minutes' ? 'bg-violet-100 text-violet-700' : 'text-gray-600 hover:bg-gray-50'
+                            intervalUnit === 'minutes' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
                           }`}
                         >
                           minutes
@@ -301,7 +337,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                           type="button"
                           onClick={() => setIntervalUnit('hours')}
                           className={`px-2 py-1.5 text-sm font-medium transition-colors ${
-                            intervalUnit === 'hours' ? 'bg-violet-100 text-violet-700' : 'text-gray-600 hover:bg-gray-50'
+                            intervalUnit === 'hours' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
                           }`}
                         >
                           hours
@@ -318,7 +354,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                         type="time"
                         value={scheduleTime}
                         onChange={(e) => setScheduleTime(e.target.value)}
-                        className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                        className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       />
                     </div>
                   )}
@@ -334,7 +370,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                             type="time"
                             value={scheduleTime}
                             onChange={(e) => setScheduleTime(e.target.value)}
-                            className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                            className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                           />
                         </div>
                         <div className="flex items-center gap-2">
@@ -342,7 +378,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                           <select
                             value={weekInterval}
                             onChange={(e) => setWeekInterval(parseInt(e.target.value))}
-                            className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                            className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                           >
                             <option value={1}>1</option>
                             <option value={2}>2</option>
@@ -364,7 +400,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                               onClick={() => toggleWeekday(day.value)}
                               className={`flex-1 py-1.5 text-sm font-medium rounded-md border transition-all ${
                                 selectedWeekdays.includes(day.value)
-                                  ? 'bg-violet-100 border-violet-300 text-violet-700'
+                                  ? 'bg-blue-100 border-blue-300 text-blue-700'
                                   : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
                               }`}
                               title={day.fullLabel}
@@ -386,7 +422,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                           type="time"
                           value={scheduleTime}
                           onChange={(e) => setScheduleTime(e.target.value)}
-                          className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                          className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                         />
                       </div>
                       <div className="flex items-center gap-2">
@@ -394,7 +430,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                         <select
                           value={monthDay}
                           onChange={(e) => setMonthDay(parseInt(e.target.value))}
-                          className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                          className="px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                         >
                           {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                             <option key={d} value={d}>{d}</option>
@@ -406,10 +442,10 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
 
                   {/* Schedule description */}
                   <div className="flex items-center gap-1 pt-1 border-t border-gray-200/60">
-                    <svg className="w-3.5 h-3.5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-sm text-violet-600 font-medium">{scheduleDescription}</span>
+                    <span className="text-sm text-blue-600 font-medium">{scheduleDescription}</span>
                   </div>
                 </div>
               ) : (
@@ -419,7 +455,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                     required
                     value={formData.cron_expression}
                     onChange={(e) => setFormData((prev) => ({ ...prev, cron_expression: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 font-mono transition-colors"
+                    className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition-colors"
                     placeholder="* * * * *"
                   />
                   <div className="flex items-start gap-2 text-sm text-gray-400">
@@ -445,7 +481,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                 value={formData.prompt}
                 onChange={(e) => setFormData((prev) => ({ ...prev, prompt: e.target.value }))}
                 rows={5}
-                className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 font-mono transition-colors resize-none"
+                className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition-colors resize-none"
                 placeholder="Enter the prompt for Claude to execute..."
               />
             </div>
@@ -466,7 +502,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                       key={tool.value}
                       className={`flex-1 flex items-center justify-center p-2.5 h-14 border rounded-lg cursor-pointer transition-all ${
                         formData.cli_tool === tool.value
-                          ? 'bg-violet-50 border-violet-300 text-violet-700 shadow-sm'
+                          ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm'
                           : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                       }`}
                     >
@@ -525,7 +561,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                         key={model.value}
                         className={`flex-1 flex flex-col items-center justify-center p-2.5 h-14 border rounded-lg cursor-pointer transition-all ${
                           formData.model === model.value
-                            ? 'bg-violet-50 border-violet-300 text-violet-700 shadow-sm'
+                            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm'
                             : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                         }`}
                       >
@@ -558,7 +594,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
               </label>
               {loadingMcps ? (
                 <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
-                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-violet-600 border-t-transparent"></div>
+                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-600 border-t-transparent"></div>
                   Loading MCP servers...
                 </div>
               ) : mcpServers.length > 0 ? (
@@ -573,7 +609,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                         onClick={() => toggleMcpTool(toolPattern)}
                         className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all ${
                           isSelected
-                            ? 'bg-violet-100 border-violet-300 text-violet-700'
+                            ? 'bg-blue-100 border-blue-300 text-blue-700'
                             : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                         }`}
                       >
@@ -657,7 +693,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                     key={type}
                     className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border rounded-lg cursor-pointer transition-all text-sm font-medium ${
                       formData.output_type === type
-                        ? 'bg-violet-50 border-violet-300 text-violet-700'
+                        ? 'bg-blue-50 border-blue-300 text-blue-700'
                         : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                     }`}
                   >
@@ -692,7 +728,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                   required
                   value={formData.email_to}
                   onChange={(e) => setFormData((prev) => ({ ...prev, email_to: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                   placeholder="recipient@example.com"
                 />
               </div>
@@ -704,7 +740,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
                 type="button"
                 onClick={() => setFormData((prev) => ({ ...prev, enabled: !prev.enabled }))}
                 className={`relative w-9 h-5 rounded-full transition-colors ${
-                  formData.enabled ? 'bg-violet-600' : 'bg-gray-300'
+                  formData.enabled ? 'bg-blue-600' : 'bg-gray-300'
                 }`}
               >
                 <span
@@ -732,7 +768,7 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
             >
               {loading && (
                 <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
@@ -742,6 +778,16 @@ export default function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
           </div>
         </form>
       </div>
+
+  )
+
+  if (variant === 'panel') {
+    return content
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      {content}
     </div>
   )
 }
