@@ -1,18 +1,99 @@
-您可以在專案的 dist/ 資料夾中找到以下檔案：
-   * Orbit-1.0.0-arm64.dmg (100MB)：這是主要的安裝檔，您可以將這個檔案傳送給其他 Mac 使用者安裝。
-   * Orbit-1.0.0-arm64-mac.zip (97MB)：這是應用程式的壓縮檔。
+# Orbit Agents
 
-  注意事項：
-  由於您的電腦上目前沒有設定 Apple Developer 憑證，所以這個 App 是 未簽名 (Unsigned) 的。
-  當您把檔案傳給朋友或安裝在其他電腦時，macOS 會跳出「無法打開，因為它來自未識別的開發者」的安全性警告。
+[中文說明 (Traditional Chinese)](./Readme_zh-tw.md)
 
-  解決方法：
-  請告訴使用者在開啟 App 時：
-   1. 按住 Control 鍵 (或是右鍵) 點擊 App 圖示。
-   2. 選擇 「打開」 (Open)。
-   3. 在跳出的警告視窗中再次點擊 「打開」。
-  (這樣做只需在第一次執行時操作，之後就可以直接點開了)
+Orbit Agents is an AI-powered desktop cron scheduler built with Electron. It combines a modern Cron scheduling system with powerful AI integration (Claude & Gemini), allowing you to automate various tasks from simple script execution to complex AI-assisted workflows.
 
-  如果您需要 build 給 Windows 或 Linux 使用者，可以分別執行：
-   * Windows: npm run build:win
-   * Linux: npm run build:linux
+## Key Features
+
+- **Smart Scheduling System**
+  - Supports standard Cron expressions
+  - Visual task management interface
+  - Flexible task enabling/disabling control
+  - Instant execution (Run Now)
+
+- **Deep AI Integration**
+  - Built-in Anthropic Claude CLI integration
+  - Built-in Google Gemini CLI integration
+  - Supports MCP (Model Context Protocol) servers
+  - Turn AI into your automation assistant
+
+- **Comprehensive Execution Logs**
+  - Detailed task execution history
+  - Success/Failure status tracking
+  - Complete output log viewing
+
+- **Notification System**
+  - Built-in Email notification (Nodemailer)
+  - Instant push notifications for task execution status
+
+- **Cross-Platform Support**
+  - macOS (Apple Silicon & Intel)
+  - Windows
+  - Linux
+
+## Installation Guide
+
+### Download
+You can find installation files in the `dist/` folder of the project:
+- **macOS**: `Orbit-1.0.0-arm64.dmg` (Apple Silicon) or `zip` file
+- **Windows**: `.exe` installer
+- **Linux**: `.AppImage` or `.deb`
+
+### macOS Installation Note
+Since the current version does not include an Apple Developer certificate, macOS Gatekeeper may show a "can't be opened because it is from an unidentified developer" security warning upon first installation.
+
+**Workaround:**
+1. In Finder, hold the **Control key** and click the App icon (or right-click).
+2. Select **"Open"** from the menu.
+3. In the warning window that appears, click **"Open"** again.
+
+> Tip: You only need to do this the first time you run the app. Afterwards, you can open it normally.
+
+## Development Guide
+
+### Prerequisites
+- Node.js (v18+ recommended)
+- npm or yarn
+
+### Quick Start
+
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+2. **Start Development Mode**
+   ```bash
+   npm run dev
+   ```
+
+3. **Build Application**
+   ```bash
+   # Build for all platforms
+   npm run build
+
+   # Build for macOS only
+   npm run build:mac
+
+   # Build for Windows only
+   npm run build:win
+
+   # Build for Linux only
+   npm run build:linux
+   ```
+
+## Technical Architecture
+
+- **Core Framework**: [Electron](https://www.electronjs.org/)
+- **Frontend**: [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [TailwindCSS](https://tailwindcss.com/)
+- **Data Storage**: [better-sqlite3](https://github.com/WiseLibs/better-sqlite3)
+- **Scheduling Core**: [node-cron](https://github.com/node-cron/node-cron)
+- **Build Tool**: [Electron Vite](https://electron-vite.org/)
+
+## License
+
+MIT License
+
+---
+Created by Muki Wu
