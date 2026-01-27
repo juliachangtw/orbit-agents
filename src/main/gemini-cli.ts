@@ -21,15 +21,21 @@ export async function executeGeminiCli(
   mcpTools?: string[]
 ): Promise<GeminiCliResult> {
   const cliPath = getGeminiCliPath()
-  
+
   // Basic args - adapt as needed for the actual CLI
   const args: string[] = []
 
   // Add model if specified and not default
   // Currently mapping both gemini-3 and gemini-2.5 to default (no flag) 
   // because specific model aliases are returning 404s with the current CLI version
-  if (model && model !== 'gemini-3' && model !== 'gemini-2.5') {
-    args.push('--model', model)
+  // Add model if specified and not default
+  if (model) {
+    console.log('[Gemini CLI] Received model:', model)
+    if (model === 'gemini-2') {
+      args.push('--model', 'gemini-2.0-flash-exp')
+    } else if (model !== 'gemini-3' && model !== 'gemini-2.5') {
+      args.push('--model', model)
+    }
   }
 
   // Add allowed tools if specified
@@ -50,7 +56,7 @@ export async function executeGeminiCli(
   return new Promise((resolve) => {
     let stdout = ''
     let stderr = ''
-    
+
     const apiKey = getSetting('gemini_api_key')
     const env = { ...process.env }
     if (apiKey) {
@@ -175,7 +181,7 @@ export async function listMcpServers(): Promise<McpServer[]> {
 
     proc.on('close', (code) => {
       console.log('[Gemini CLI] mcp list output:', stdout.substring(0, 500))
-      
+
       const servers: McpServer[] = []
       const lines = stdout.split('\n')
 
@@ -183,7 +189,7 @@ export async function listMcpServers(): Promise<McpServer[]> {
         // Clean the line of ANSI codes and whitespace
         // eslint-disable-next-line no-control-regex
         const cleanLine = line.replace(/\x1B\[\d+m/g, '').trim()
-        
+
         // Skip empty lines or headers
         if (!cleanLine || cleanLine.startsWith('Configured MCP servers') || cleanLine.includes('Checking')) {
           continue
@@ -191,14 +197,14 @@ export async function listMcpServers(): Promise<McpServer[]> {
 
         // Match "✓ name: command" or "name: command"
         const match = cleanLine.match(/^(?:✓\s*)?([^:]+):\s+(.+)$/)
-        
+
         if (match) {
           const serverName = match[1].trim()
           // Filter out invalid names
           if (serverName && !serverName.includes('MCP') && serverName.length < 50) {
             servers.push({
               name: serverName,
-              tools: ['*'] 
+              tools: ['*']
             })
           }
         }

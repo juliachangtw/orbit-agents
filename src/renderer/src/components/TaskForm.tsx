@@ -477,8 +477,8 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
                 required
                 value={formData.prompt}
                 onChange={(e) => setFormData((prev) => ({ ...prev, prompt: e.target.value }))}
-                rows={5}
-                className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition-colors resize-none"
+                rows={8}
+                className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors resize-y"
                 placeholder="Enter the prompt for Claude to execute..."
               />
             </div>
@@ -537,7 +537,8 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
                       ]
                     } else if (formData.cli_tool === 'gemini') {
                       models = [
-                        { value: 'gemini-3', label: 'Auto (Gemini 3)', desc: 'Best for task (3-pro/3-flash)' }
+                        { value: 'gemini-3', label: 'Auto (Gemini 3)', desc: 'Best for task (3-pro/3-flash)' },
+                        { value: 'gemini-2', label: 'Gemini 2', desc: 'Auto (2-pro / 2-flash)' }
                       ]
                     }
 

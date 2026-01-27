@@ -1,5 +1,5 @@
 // Task Types
-export type ModelType = 'sonnet' | 'opus' | 'haiku' | 'gemini-3' | 'gemini-2.5'
+export type ModelType = 'sonnet' | 'opus' | 'haiku' | 'gemini-3' | 'gemini-2.5' | 'gemini-2'
 
 export interface Task {
   id: string
