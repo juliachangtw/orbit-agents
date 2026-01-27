@@ -235,3 +235,10 @@ export function useGeminiCli() {
 
   return { testConnection, listMcps }
 }
+
+export function useProcessInput() {
+  const sendInput = useCallback(async (executionId: string, input: string): Promise<boolean> => {
+    return api.invoke('task:process-input', executionId, input)
+  }, [])
+  return { sendInput }
+}

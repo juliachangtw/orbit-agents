@@ -27,6 +27,7 @@ import {
   runTaskNow,
   onExecutionUpdate
 } from './scheduler'
+import { writeToProcess } from './process-manager'
 import { testClaudeConnection, listMcpServers } from './claude-cli'
 import { testGeminiConnection, listMcpServers as listGeminiMcpServers } from './gemini-cli'
 
@@ -114,6 +115,11 @@ function registerIpcHandlers(): void {
 
   ipcMain.handle('task:run-now', async (_, id: string) => {
     return runTaskNow(id)
+  })
+
+  // Process input handler
+  ipcMain.handle('task:process-input', (_, executionId: string, input: string) => {
+    return writeToProcess(executionId, input)
   })
 
   // Log handlers

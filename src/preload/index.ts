@@ -16,6 +16,7 @@ const api: ElectronApi = {
       'task:delete',
       'task:toggle',
       'task:run-now',
+      'task:process-input',
       'log:list',
       'log:get',
       'log:delete',

@@ -1,5 +1,6 @@
 import { spawn, execFile } from 'child_process'
 import { getSetting } from './database'
+import { checkDangerousOperations } from './security-check'
 import type { ClaudeCliResult, McpServer, ModelType } from '../shared/types'
 
 function getClaudeCliPath(): string {
@@ -96,6 +97,17 @@ export async function executeClaudeCli(
     }
   }
 
+  // Security check: Check prompt before execution
+  const promptSecurityCheck = checkDangerousOperations(prompt)
+  if (promptSecurityCheck.isDangerous) {
+    console.log('[Claude CLI] Security check failed: Dangerous operation detected in prompt')
+    return Promise.resolve({
+      success: false,
+      output: '',
+      error: `🚫 安全檢查失敗: ${promptSecurityCheck.reason}\n\n為了保護您的系統安全，已阻止執行包含危險刪除操作的命令。\n檢測到的命令: ${promptSecurityCheck.detectedCommand || '未知'}\n\n如需執行此操作，請明確授權並確認風險。`
+    })
+  }
+
   // Add the prompt with -p flag (required when using --file)
   args.push('-p', prompt)
 
@@ -144,6 +156,23 @@ export async function executeClaudeCli(
     proc.stdout.on('data', (data: Buffer) => {
       const text = data.toString()
       console.log('[Claude CLI] stdout chunk received, length:', text.length)
+      
+      // Security check: Check output for dangerous operations
+      const securityCheck = checkDangerousOperations(text)
+      if (securityCheck.isDangerous) {
+        console.log('[Claude CLI] Security check failed: Dangerous operation detected in output')
+        console.log('[Claude CLI] Killing process due to security violation')
+        killed = true
+        clearInterval(idleChecker)
+        proc.kill('SIGTERM')
+        resolve({
+          success: false,
+          output: parseStreamJsonOutput(stdout),
+          error: `🚫 安全檢查失敗: ${securityCheck.reason}\n\n為了保護您的系統安全，已自動停止執行。\n檢測到的命令: ${securityCheck.detectedCommand || '未知'}\n\n嚴格禁止在未經使用者授權下主動刪除項目。`
+        })
+        return
+      }
+      
       stdout += text
       lastActivityTime = Date.now() // Reset activity timer
 
@@ -157,6 +186,23 @@ export async function executeClaudeCli(
     proc.stderr.on('data', (data: Buffer) => {
       const text = data.toString()
       console.log('[Claude CLI] stderr:', text.substring(0, 200))
+      
+      // Security check: Check stderr for dangerous operations
+      const securityCheck = checkDangerousOperations(text)
+      if (securityCheck.isDangerous) {
+        console.log('[Claude CLI] Security check failed: Dangerous operation detected in stderr')
+        console.log('[Claude CLI] Killing process due to security violation')
+        killed = true
+        clearInterval(idleChecker)
+        proc.kill('SIGTERM')
+        resolve({
+          success: false,
+          output: parseStreamJsonOutput(stdout),
+          error: `🚫 安全檢查失敗: ${securityCheck.reason}\n\n為了保護您的系統安全，已自動停止執行。\n檢測到的命令: ${securityCheck.detectedCommand || '未知'}\n\n嚴格禁止在未經使用者授權下主動刪除項目。`
+        })
+        return
+      }
+      
       stderr += text
       lastActivityTime = Date.now() // Reset activity timer
     })

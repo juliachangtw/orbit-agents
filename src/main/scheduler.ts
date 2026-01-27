@@ -147,7 +147,7 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
     let result: ClaudeCliResult | GeminiCliResult
 
     if (task.cli_tool === 'gemini') {
-      result = await executeGeminiCli(promptWithTextFiles, task.model, onOutput, binaryAttachments, mcpTools)
+      result = await executeGeminiCli(promptWithTextFiles, task.model, onOutput, binaryAttachments, mcpTools, log.id)
     } else {
       // Default to Claude
       result = await executeClaudeCli(promptWithTextFiles, mcpTools, task.model, onOutput, binaryAttachments)
