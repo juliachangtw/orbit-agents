@@ -1,6 +1,9 @@
 import { app, BrowserWindow, ipcMain, shell, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import fixPath from 'fix-path'
+
+fixPath()
 import {
   initDatabase,
   closeDatabase,
