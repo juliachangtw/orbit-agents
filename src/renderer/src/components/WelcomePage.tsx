@@ -5,7 +5,7 @@ import pkg from '../../../../package.json'
 const LATEST_VERSION = pkg.version
 const MAC_DOWNLOAD_URL = `https://github.com/mukiwu/orbit-agents/releases/download/v${LATEST_VERSION}/Orbit-Agents-${LATEST_VERSION}-arm64.dmg`
 const WIN_DOWNLOAD_URL = `https://github.com/mukiwu/orbit-agents/releases/download/v${LATEST_VERSION}/Orbit-Agents-Setup-${LATEST_VERSION}.exe`
-const WIN_ZIP_DOWNLOAD_URL = `https://github.com/mukiwu/orbit-agents/releases/download/v${LATEST_VERSION}/Orbit-Agents-${LATEST_VERSION}-arm64-win.zip`
+const WIN_ZIP_DOWNLOAD_URL = `https://github.com/mukiwu/orbit-agents/releases/download/v${LATEST_VERSION}/Orbit-Agents-${LATEST_VERSION}-x64-win.zip`
 
 const TESTIMONIALS = [
   {

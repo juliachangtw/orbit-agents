@@ -1,6 +1,6 @@
 {
   "name": "orbit-agents",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "AI-Powered Cron Scheduler for Desktop",
   "main": "./out/main/index.js",
   "author": "Muki Wu",
@@ -69,8 +69,18 @@
     "win": {
       "artifactName": "Orbit-Agents-${version}-${arch}-win.${ext}",
       "target": [
-        "nsis",
-        "zip"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
     },
     "linux": {
