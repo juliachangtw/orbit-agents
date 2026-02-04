@@ -5,6 +5,9 @@ import { is } from '@electron-toolkit/utils'
 // Configure auto-updater
 autoUpdater.autoDownload = false
 autoUpdater.autoInstallOnAppQuit = true
+// Disable code signature verification for unsigned apps (like Tauri does)
+autoUpdater.disableWebInstaller = false
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 
 // Store the update info for UI
 let updateAvailable: UpdateInfo | null = null
@@ -76,11 +79,27 @@ export function initAutoUpdater(mainWindow: BrowserWindow | null): void {
   })
 
   autoUpdater.on('error', (err: Error) => {
-    currentStatus = {
-      ...currentStatus,
-      checking: false,
-      downloading: false,
-      error: err.message
+    const isMac = process.platform === 'darwin'
+    const isSignatureError = err.message.includes('Code signature') || err.message.includes('Could not get code signature')
+
+    if (isMac && isSignatureError && updateAvailable) {
+      currentStatus = {
+        ...currentStatus,
+        checking: false,
+        downloading: false,
+        // Mark as available but with special error/action
+        available: true,
+        version: updateAvailable.version,
+        error: 'Automatic update requires code signing. Please download manually.',
+        releaseUrl: `https://github.com/mukiwu/orbit-agents/releases/tag/v${updateAvailable.version}`
+      }
+    } else {
+      currentStatus = {
+        ...currentStatus,
+        checking: false,
+        downloading: false,
+        error: err.message
+      }
     }
     sendStatusToRenderer(mainWindow)
   })
@@ -150,10 +169,27 @@ export function registerAutoUpdaterIpcHandlers(): void {
 
       return currentStatus
     } catch (err) {
-      currentStatus = {
-        ...currentStatus,
-        checking: false,
-        error: err instanceof Error ? err.message : 'Unknown error'
+      const isMac = process.platform === 'darwin'
+      const isSignatureError = err instanceof Error && err.message.includes('Code signature')
+
+      // If it's a signature error on Mac, we still want to show the update is available
+      // but force manual download
+      if (isMac && isSignatureError && updateAvailable) {
+        currentStatus = {
+          ...currentStatus,
+          checking: false,
+          available: true,
+          downloading: false,
+          error: 'Automatic update requires code signing. Please download manually.',
+          version: updateAvailable.version,
+          releaseUrl: `https://github.com/mukiwu/orbit-agents/releases/tag/v${updateAvailable.version}`
+        }
+      } else {
+        currentStatus = {
+          ...currentStatus,
+          checking: false,
+          error: err instanceof Error ? err.message : 'Unknown error'
+        }
       }
       return currentStatus
     }

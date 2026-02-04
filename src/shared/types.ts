@@ -79,6 +79,8 @@ export interface UpdateStatus {
   progress: number
   version: string | null
   error: string | null
+  releaseUrl?: string
+  platform?: 'darwin' | 'win32' | 'linux'
 }
 
 // Claude CLI Types

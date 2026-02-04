@@ -424,13 +424,25 @@ export default function Settings({}: SettingsProps) {
                             <p className="text-sm font-medium text-blue-900">Version {updateStatus.version} is available!</p>
                             <p className="text-xs text-blue-700 mt-1">A new version can be downloaded and installed.</p>
                           </div>
-                          <button
-                            onClick={handleDownloadUpdate}
-                            className="px-4 py-2 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            Download Update
-                          </button>
+                          {updateStatus.releaseUrl ? (
+                            <a
+                              href={updateStatus.releaseUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors no-underline"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              Manual Download
+                            </a>
+                          ) : (
+                            <button
+                              onClick={handleDownloadUpdate}
+                              className="px-4 py-2 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              Download Update
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
