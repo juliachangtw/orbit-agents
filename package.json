@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",
+    "electron-updater": "^6.7.3",
     "fix-path": "^3.0.0",
     "lucide-react": "^0.563.0",
     "marked": "^4.3.0",
@@ -96,6 +97,12 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Orbit Agents",
       "artifactName": "Orbit-Agents-Setup-${version}.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "mukiwu",
+      "repo": "orbit-agents",
+      "releaseType": "release"
     }
   }
 }

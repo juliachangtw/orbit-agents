@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, shell, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import fixPath from 'fix-path'
+import { initAutoUpdater, registerAutoUpdaterIpcHandlers } from './auto-updater'
 
 fixPath()
 import {
@@ -228,6 +229,7 @@ app.whenReady().then(() => {
 
   // Register IPC handlers
   registerIpcHandlers()
+  registerAutoUpdaterIpcHandlers()
 
   // Initialize scheduler
   initScheduler()
@@ -239,6 +241,9 @@ app.whenReady().then(() => {
 
   // Create window
   createWindow()
+
+  // Initialize auto-updater after window is created
+  initAutoUpdater(mainWindow)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

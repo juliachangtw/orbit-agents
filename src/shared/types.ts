@@ -65,9 +65,21 @@ export interface Settings {
   gemini_cli_path?: string
   gemini_api_key?: string
   auto_launch?: string
+  auto_update?: string
 }
 
 export type SettingKey = keyof Settings
+
+// Auto-updater Types
+export interface UpdateStatus {
+  checking: boolean
+  available: boolean
+  downloaded: boolean
+  downloading: boolean
+  progress: number
+  version: string | null
+  error: string | null
+}
 
 // Claude CLI Types
 export interface ClaudeCliResult {
@@ -115,6 +127,12 @@ export interface IpcApi {
   // Gemini CLI operations
   'gemini:test': () => Promise<GeminiCliResult>
   'gemini:list-mcps': () => Promise<McpServer[]>
+
+  // Auto-updater operations
+  'updater:check': () => Promise<UpdateStatus>
+  'updater:download': () => Promise<boolean>
+  'updater:install': () => Promise<void>
+  'updater:status': () => Promise<UpdateStatus>
 }
 
 // For preload

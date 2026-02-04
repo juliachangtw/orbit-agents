@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { IpcApi, ElectronApi } from '../shared/types'
 
-type IpcChannel = keyof IpcApi | 'settings:test-email' | 'dialog:open-files'
+type IpcChannel = keyof IpcApi | 'settings:test-email' | 'dialog:open-files' | 'updater:check' | 'updater:download' | 'updater:install' | 'updater:status'
 
 const api: ElectronApi = {
   invoke: <K extends keyof IpcApi>(
@@ -27,7 +27,11 @@ const api: ElectronApi = {
       'claude:list-mcps',
       'gemini:test',
       'gemini:list-mcps',
-      'dialog:open-files'
+      'dialog:open-files',
+      'updater:check',
+      'updater:download',
+      'updater:install',
+      'updater:status'
     ]
 
     if (validChannels.includes(channel)) {
@@ -38,7 +42,7 @@ const api: ElectronApi = {
   },
 
   on: (channel: string, callback: (...args: unknown[]) => void): void => {
-    const validChannels = ['execution:update']
+    const validChannels = ['execution:update', 'updater:status']
 
     if (validChannels.includes(channel)) {
       ipcRenderer.on(channel, (_, ...args) => callback(...args))
@@ -46,7 +50,7 @@ const api: ElectronApi = {
   },
 
   off: (channel: string, callback: (...args: unknown[]) => void): void => {
-    const validChannels = ['execution:update']
+    const validChannels = ['execution:update', 'updater:status']
 
     if (validChannels.includes(channel)) {
       ipcRenderer.removeListener(channel, callback)

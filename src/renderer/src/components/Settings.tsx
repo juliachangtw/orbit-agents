@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSettings, useClaudeCli, useGeminiCli } from '../hooks/useApi'
-import type { ClaudeCliResult, GeminiCliResult } from '../../../shared/types'
-import { Settings2, Terminal, Mail, Cpu, Box, Check, Loader2, AlertCircle } from 'lucide-react'
+import type { ClaudeCliResult, GeminiCliResult, UpdateStatus } from '../../../shared/types'
+import { Settings2, Terminal, Mail, Cpu, Box, Check, Loader2, AlertCircle, Download, RefreshCw } from 'lucide-react'
 
 type SettingsTab = 'general' | 'claude' | 'gemini' | 'email'
 
@@ -25,8 +25,13 @@ export default function Settings({}: SettingsProps) {
     claude_session_token: '',
     gemini_cli_path: '',
     gemini_api_key: '',
-    auto_launch: 'true'
+    auto_launch: 'true',
+    auto_update: 'true'
   })
+
+  // Auto-update state
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null)
+  const [checkingUpdate, setCheckingUpdate] = useState(false)
 
   // Track if initial load is done to avoid overwriting user edits with stale data
   const [isLoaded, setIsLoaded] = useState(false)
@@ -57,11 +62,65 @@ export default function Settings({}: SettingsProps) {
         claude_session_token: settings.claude_session_token || '',
         gemini_cli_path: settings.gemini_cli_path || '',
         gemini_api_key: settings.gemini_api_key || '',
-        auto_launch: settings.auto_launch ?? 'true'
+        auto_launch: settings.auto_launch ?? 'true',
+        auto_update: settings.auto_update ?? 'true'
       })
       setIsLoaded(true)
     }
   }, [loading, settings, isLoaded])
+
+  // Check for updates handler
+  const handleCheckForUpdates = async () => {
+    setCheckingUpdate(true)
+    try {
+      const status = await window.electronApi.invoke('updater:check' as any)
+      setUpdateStatus(status)
+    } catch (err) {
+      setUpdateStatus({
+        checking: false,
+        available: false,
+        downloaded: false,
+        downloading: false,
+        progress: 0,
+        version: null,
+        error: err instanceof Error ? err.message : 'Unknown error'
+      })
+    } finally {
+      setCheckingUpdate(false)
+    }
+  }
+
+  // Download update handler
+  const handleDownloadUpdate = async () => {
+    try {
+      await window.electronApi.invoke('updater:download' as any)
+    } catch (err) {
+      console.error('Download failed:', err)
+    }
+  }
+
+  // Install update handler
+  const handleInstallUpdate = async () => {
+    try {
+      await window.electronApi.invoke('updater:install' as any)
+    } catch (err) {
+      console.error('Install failed:', err)
+    }
+  }
+
+  // Listen for update status changes
+  useEffect(() => {
+    const handleUpdateStatus = (status: UpdateStatus) => {
+      setUpdateStatus(status)
+      setCheckingUpdate(status.checking)
+    }
+
+    window.electronApi.on('updater:status', handleUpdateStatus as any)
+
+    return () => {
+      window.electronApi.off('updater:status', handleUpdateStatus as any)
+    }
+  }, [])
 
   // --- Auto-Save Logic ---
   // We use a ref to keep track of the timeout ID so we can clear it
@@ -274,6 +333,7 @@ export default function Settings({}: SettingsProps) {
             </div>
 
             <div className="bg-white p-6 rounded-xl border border-gray-200/60 shadow-sm space-y-6">
+              {/* Launch at Login */}
               <div className="flex items-center justify-between">
                 <div>
                   <label className="text-sm font-medium text-gray-900 block">Launch at Login</label>
@@ -291,6 +351,127 @@ export default function Settings({}: SettingsProps) {
                     }`}
                   />
                 </button>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-100" />
+
+              {/* Auto Update */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-gray-900 block">Auto Update</label>
+                  <p className="text-xs text-gray-500 mt-1">Automatically check for and notify about updates.</p>
+                </div>
+                <button
+                  onClick={() => setFormData(prev => ({ ...prev, auto_update: prev.auto_update === 'true' ? 'false' : 'true' }))}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    formData.auto_update === 'true' ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      formData.auto_update === 'true' ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Check for Updates */}
+              <div className="pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-900 block">Software Update</label>
+                    <p className="text-xs text-gray-500 mt-1">Check if a new version is available.</p>
+                  </div>
+                  <button
+                    onClick={handleCheckForUpdates}
+                    disabled={checkingUpdate || updateStatus?.downloading}
+                    className="px-4 py-2 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                  >
+                    {checkingUpdate ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    )}
+                    Check for Updates
+                  </button>
+                </div>
+
+                {/* Update Status Display */}
+                {updateStatus && (
+                  <div className="space-y-3">
+                    {/* Error */}
+                    {updateStatus.error && (
+                      <div className="flex items-start gap-2 p-3 bg-red-50 text-red-700 rounded-lg text-xs">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>{updateStatus.error}</span>
+                      </div>
+                    )}
+
+                    {/* No Updates Available */}
+                    {!updateStatus.checking && !updateStatus.available && !updateStatus.error && (
+                      <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-700 rounded-lg text-xs">
+                        <Check className="w-4 h-4" />
+                        <span>You're running the latest version!</span>
+                      </div>
+                    )}
+
+                    {/* Update Available */}
+                    {updateStatus.available && !updateStatus.downloaded && !updateStatus.downloading && (
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-blue-900">Version {updateStatus.version} is available!</p>
+                            <p className="text-xs text-blue-700 mt-1">A new version can be downloaded and installed.</p>
+                          </div>
+                          <button
+                            onClick={handleDownloadUpdate}
+                            className="px-4 py-2 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            Download Update
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Downloading */}
+                    {updateStatus.downloading && (
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                          <span className="text-sm font-medium text-blue-900">Downloading update...</span>
+                        </div>
+                        <div className="w-full bg-blue-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${updateStatus.progress}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-blue-700 mt-2">{Math.round(updateStatus.progress)}% complete</p>
+                      </div>
+                    )}
+
+                    {/* Downloaded, Ready to Install */}
+                    {updateStatus.downloaded && (
+                      <div className="p-4 bg-emerald-50 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-emerald-900">Update downloaded!</p>
+                            <p className="text-xs text-emerald-700 mt-1">The app will restart to install the update.</p>
+                          </div>
+                          <button
+                            onClick={handleInstallUpdate}
+                            className="px-4 py-2 text-xs font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 flex items-center gap-2 transition-colors"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            Restart & Install
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
