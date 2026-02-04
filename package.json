@@ -73,6 +73,13 @@
         "AppImage",
         "deb"
       ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Orbit Agents"
     }
   }
 }
