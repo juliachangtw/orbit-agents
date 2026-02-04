@@ -5,6 +5,7 @@ import pkg from '../../../../package.json'
 const LATEST_VERSION = pkg.version
 const MAC_DOWNLOAD_URL = `https://github.com/mukiwu/orbit-agents/releases/download/v${LATEST_VERSION}/Orbit-Agents-${LATEST_VERSION}-arm64.dmg`
 const WIN_DOWNLOAD_URL = `https://github.com/mukiwu/orbit-agents/releases/download/v${LATEST_VERSION}/Orbit-Agents-Setup-${LATEST_VERSION}.exe`
+const WIN_ZIP_DOWNLOAD_URL = `https://github.com/mukiwu/orbit-agents/releases/download/v${LATEST_VERSION}/Orbit-Agents-${LATEST_VERSION}-arm64-win.zip`
 
 const TESTIMONIALS = [
   {
@@ -209,7 +210,7 @@ export default function WelcomePage() {
           </p>
 
           {/* CTA Section */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center gap-4">
               <a 
                 href={MAC_DOWNLOAD_URL}
                 className="px-6 py-4 bg-gradient-to-r from-gray-800 to-gray-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 text-lg"
@@ -219,15 +220,20 @@ export default function WelcomePage() {
                 </svg>
                 Download for Mac
               </a>
-              <a 
-                href={WIN_DOWNLOAD_URL}
-                className="px-6 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 text-lg"
-              >
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M0 3.449L9.75 2.1v9.451H0m9.75 9.413L0 19.488V12h9.75m2.25-10.413L24 0v11.458H12M24 24l-12-1.583v-9.967H24"/>
-                </svg>
-                Download for Windows
-              </a>
+              <div className="flex flex-col items-center gap-2">
+                <a 
+                  href={WIN_DOWNLOAD_URL}
+                  className="px-6 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 text-lg"
+                >
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M0 3.449L9.75 2.1v9.451H0m9.75 9.413L0 19.488V12h9.75m2.25-10.413L24 0v11.458H12M24 24l-12-1.583v-9.967H24"/>
+                  </svg>
+                  Download for Windows
+                </a>
+                <a href={WIN_ZIP_DOWNLOAD_URL} className="text-sm text-gray-500 hover:text-blue-600 font-medium transition-colors">
+                  Or Download Portable (.zip)
+                </a>
+              </div>
               
               <a
               href="https://github.com/mukiwu/orbit-agents"
@@ -476,7 +482,7 @@ export default function WelcomePage() {
         {/* Bottom CTA */}
         <div className="mt-20 mb-20 flex flex-col items-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-8 font-display">Ready to supercharge your workflow?</h2>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
               <a 
                 href={MAC_DOWNLOAD_URL}
                 className="px-8 py-5 bg-gradient-to-r from-gray-800 to-gray-700 text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 text-xl"
@@ -486,15 +492,20 @@ export default function WelcomePage() {
                 </svg>
                 Download for Mac
               </a>
-              <a 
-                href={WIN_DOWNLOAD_URL}
-                className="px-8 py-5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-bold shadow-xl shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 text-xl"
-              >
-                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M0 3.449L9.75 2.1v9.451H0m9.75 9.413L0 19.488V12h9.75m2.25-10.413L24 0v11.458H12M24 24l-12-1.583v-9.967H24"/>
-                </svg>
-                Download for Windows
-              </a>
+              <div className="flex flex-col items-center gap-2">
+                <a 
+                  href={WIN_DOWNLOAD_URL}
+                  className="px-8 py-5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-bold shadow-xl shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 text-xl"
+                >
+                  <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M0 3.449L9.75 2.1v9.451H0m9.75 9.413L0 19.488V12h9.75m2.25-10.413L24 0v11.458H12M24 24l-12-1.583v-9.967H24"/>
+                  </svg>
+                  Download for Windows
+                </a>
+                <a href={WIN_ZIP_DOWNLOAD_URL} className="text-sm text-gray-500 hover:text-blue-600 font-medium transition-colors">
+                  Portable (.zip)
+                </a>
+              </div>
             </div>
             <p className="mt-4 text-gray-500 text-sm">Available for macOS and Windows</p>
         </div>

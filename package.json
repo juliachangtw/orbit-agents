@@ -60,12 +60,14 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
+      "artifactName": "Orbit-Agents-${version}-${arch}.${ext}",
       "target": [
         "dmg",
         "zip"
       ]
     },
     "win": {
+      "artifactName": "Orbit-Agents-${version}-${arch}-win.${ext}",
       "target": [
         "nsis",
         "zip"
@@ -82,7 +84,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Orbit Agents"
+      "shortcutName": "Orbit Agents",
+      "artifactName": "Orbit-Agents-Setup-${version}.${ext}"
     }
   }
 }
