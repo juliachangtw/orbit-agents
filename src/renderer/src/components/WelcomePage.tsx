@@ -1,5 +1,4 @@
 
-import React from 'react'
 import screenshot from '../assets/screenshot.png'
 import pkg from '../../../../package.json'
 

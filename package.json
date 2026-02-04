@@ -55,6 +55,9 @@
       "output": "dist",
       "buildResources": "resources"
     },
+    "files": [
+      "out/**/*"
+    ],
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
