@@ -38,7 +38,7 @@ Orbit Agents is an AI-powered desktop cron scheduler built with Electron. It com
 
 ### Download
 You can find installation files in the `dist/` folder of the project:
-- **macOS**: `Orbit-1.0.3-arm64.dmg` (Apple Silicon) or `zip` file
+- **macOS**: `Orbit-1.0.4-arm64.dmg` (Apple Silicon) or `zip` file
 - **Windows**: `.exe` installer
 - **Linux**: `.AppImage` or `.deb`
 
