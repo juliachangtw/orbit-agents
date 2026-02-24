@@ -120,6 +120,7 @@ export async function executeGeminiCli(
     const proc = spawn(cliPath, args, {
       shell: false,
       env,
+      cwd: process.env.HOME || '/',
       stdio: ['pipe', 'pipe', 'pipe'] // Enable stdin pipe
     })
 

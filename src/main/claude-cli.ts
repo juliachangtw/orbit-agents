@@ -150,6 +150,7 @@ export async function executeClaudeCli(
     const proc = spawn(cliPath, args, {
       shell: false,
       env,
+      cwd: process.env.HOME || '/',
       stdio: ['ignore', 'pipe', 'pipe'],  // stdin ignored, stdout/stderr piped
       detached: false
     })

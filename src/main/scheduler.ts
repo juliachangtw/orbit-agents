@@ -164,8 +164,8 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
 
     notifyExecutionUpdate(updatedLog)
 
-    // Send email if configured
-    if (task.output_type === 'both' && task.email_to) {
+    // Send email if configured (only on success — failures stay in logs)
+    if (task.output_type === 'both' && task.email_to && updatedLog.status === 'success') {
       try {
         await sendTaskResultEmail(task, updatedLog)
       } catch (emailError) {

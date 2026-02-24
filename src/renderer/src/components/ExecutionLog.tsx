@@ -305,79 +305,25 @@ function LogDetail({ log: initialLog }: LogDetailProps) {
       }
     }
     
-    // More comprehensive permission detection patterns
+    // Only detect real interactive permission prompts (e.g. Gemini CLI [y/n] prompts).
+    // Claude CLI uses --dangerously-skip-permissions so it never actually waits for input.
+    // Previous broad patterns (matching "mcp"+"access", "tool"+"permission", etc.) caused
+    // false positives on normal Claude output that simply mentioned these words.
     const permissionPatterns = [
-      // Policy denied errors (highest priority - check first)
+      // Explicit interactive prompt with [y/n] or (y/n)
       {
-        test: (text: string) => 
-          text.includes('Denied by policy') ||
-          text.includes('denied by policy') ||
-          text.includes('操作遭到系統政策拒絕') ||
-          text.includes('政策拒絕') ||
-          (text.includes('系統政策') && (text.includes('拒絕') || text.includes('denied'))) ||
-          (text.includes('policy') && text.includes('denied')),
-        message: 'MCP 工具被系統政策拒絕'
-      },
-      // MCP server not started or permission not configured
-      {
-        test: (text: string) => 
-          (text.includes('MCP Server') || text.includes('mcp server') || text.includes('MCP 伺服器')) &&
-          (text.includes('未正確啟動') || text.includes('not.*start') || text.includes('未啟動') || text.includes('權限未配置') || text.includes('permission.*not.*config')),
-        message: 'MCP Server 未正確啟動或權限未配置'
-      },
-      // Security policy restriction
-      {
-        test: (text: string) => 
-          text.includes('目前的執行環境安全策略限制') || 
-          text.includes('執行環境安全策略') ||
-          text.includes('安全策略限制'),
-        message: '執行環境安全策略限制 - 需要授權確認'
-      },
-      // GA4 specific
-      {
-        test: (text: string) => 
-          text.includes('i will execute these data fetches now') && 
-          (text.includes('權限政策限制') || text.includes('無法直接存取') || text.includes('ga4') || text.includes('安全策略')),
-        message: '需要授權存取 Google Analytics 4 數據'
-      },
-      // MCP tools specific
-      {
-        test: (text: string) => 
-          (text.includes('mcp') || text.includes('tool')) && 
-          (text.includes('permission') || text.includes('授權') || text.includes('權限') || text.includes('access') || text.includes('存取')),
-        message: '需要授權存取 MCP 工具'
-      },
-      // General permission patterns
-      {
-        test: (text: string) => 
-          (text.includes('[y/n]') || text.includes('(y/n)')) && 
+        test: (text: string) =>
+          (text.includes('[y/n]') || text.includes('(y/n)')) &&
           (text.includes('permission') || text.includes('授權') || text.includes('allow') || text.includes('允許')),
         message: '需要授權確認'
       },
+      // Policy denied errors (informational, not interactive)
       {
-        test: (text: string) => 
-          text.includes('permission') && text.includes('access') && 
-          (text.includes('allow') || text.includes('grant') || text.includes('授權')),
-        message: '需要授權確認'
-      },
-      {
-        test: (text: string) => 
-          (text.includes('授權') || text.includes('權限')) && 
-          (text.includes('存取') || text.includes('access') || text.includes('允許') || text.includes('allow')),
-        message: '需要授權確認'
-      },
-      // Check if output seems stuck waiting for input (common sign of permission prompt)
-      {
-        test: (text: string) => {
-          const lines = text.split('\n').filter(l => l.trim())
-          const lastLine = lines[lines.length - 1] || ''
-          return (
-            lastLine.includes('?') && 
-            (lastLine.includes('allow') || lastLine.includes('permission') || lastLine.includes('授權') || lastLine.includes('允許')) &&
-            text.length > 100 // Only if there's substantial output (not just a prompt)
-          )
-        },
-        message: '等待權限確認'
+        test: (text: string) =>
+          text.includes('denied by policy') ||
+          text.includes('操作遭到系統政策拒絕') ||
+          text.includes('政策拒絕'),
+        message: 'MCP 工具被系統政策拒絕'
       }
     ]
 
