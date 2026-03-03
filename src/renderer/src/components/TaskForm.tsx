@@ -692,12 +692,12 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
                   Email To <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={formData.email_to}
                   onChange={(e) => setFormData((prev) => ({ ...prev, email_to: e.target.value }))}
                   className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
-                  placeholder="recipient@example.com"
+                  placeholder="user@example.com, user2@example.com"
                 />
               </div>
             )}
