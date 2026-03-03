@@ -1,6 +1,7 @@
 /**
  * Security check module for detecting dangerous operations
- * Strictly prohibits unauthorized deletion operations
+ * Detects actual dangerous shell commands that could cause data loss.
+ * Focused on real executable patterns, not natural language discussion.
  */
 
 export interface SecurityCheckResult {
@@ -10,90 +11,69 @@ export interface SecurityCheckResult {
 }
 
 /**
- * Check if text contains dangerous deletion operations
+ * Check if text contains dangerous deletion operations.
+ * Only flags patterns that look like actual executable commands,
+ * not natural language mentions of deletion concepts.
  */
 export function checkDangerousOperations(text: string): SecurityCheckResult {
-  const lowerText = text.toLowerCase()
-
-  // Dangerous deletion command patterns
+  // Dangerous deletion command patterns — focused on real shell commands
   const dangerousPatterns = [
-    // rm -rf patterns (most dangerous)
+    // rm -rf targeting dangerous paths
     {
-      pattern: /\brm\s+-rf\s+/i,
-      reason: '檢測到危險的刪除命令: rm -rf (遞迴強制刪除)',
-      command: 'rm -rf'
+      pattern: /\brm\s+-rf\s+[\/~]/i,
+      reason: '檢測到危險的刪除命令: rm -rf 指向根目錄或家目錄',
+      command: 'rm -rf /~'
     },
     {
-      pattern: /\brm\s+-r\s+-f\s+/i,
-      reason: '檢測到危險的刪除命令: rm -r -f (遞迴強制刪除)',
-      command: 'rm -r -f'
+      pattern: /\brm\s+-rf\s+\.\.\//i,
+      reason: '檢測到危險的刪除命令: rm -rf 指向上層目錄',
+      command: 'rm -rf ../'
     },
     {
-      pattern: /\brm\s+-fr\s+/i,
-      reason: '檢測到危險的刪除命令: rm -fr (遞迴強制刪除)',
-      command: 'rm -fr'
-    },
-    // rm with dangerous flags
-    {
-      pattern: /\brm\s+-r\s+/i,
-      reason: '檢測到危險的刪除命令: rm -r (遞迴刪除)',
-      command: 'rm -r'
+      pattern: /\brm\s+-rf\s+\*\s/i,
+      reason: '檢測到危險的刪除命令: rm -rf * (刪除所有檔案)',
+      command: 'rm -rf *'
     },
     {
-      pattern: /\brm\s+-f\s+/i,
-      reason: '檢測到危險的刪除命令: rm -f (強制刪除)',
-      command: 'rm -f'
+      pattern: /\brm\s+-(rf|fr)\s+\//i,
+      reason: '檢測到危險的刪除命令: rm -rf / (刪除根目錄)',
+      command: 'rm -rf /'
     },
-    // Dangerous paths with rm
+    // rm -r -f variants targeting dangerous paths
     {
-      pattern: /\brm\s+.*\/\s*$/i,
+      pattern: /\brm\s+-r\s+-f\s+[\/~]/i,
+      reason: '檢測到危險的刪除命令: rm -r -f 指向根目錄或家目錄',
+      command: 'rm -r -f /~'
+    },
+    // rm targeting root or wildcard everything
+    {
+      pattern: /\brm\s+.*\s+\/\s*$/m,
       reason: '檢測到危險的刪除命令: 嘗試刪除根目錄',
       command: 'rm /'
     },
+    // Dangerous redirect + delete combos
     {
-      pattern: /\brm\s+.*\.\.\/\.\.\/\.\./i,
-      reason: '檢測到危險的刪除命令: 嘗試刪除上層目錄',
-      command: 'rm ../..'
-    },
-    // Other dangerous deletion commands
-    {
-      pattern: /\bunlink\s+.*\/\s*$/i,
-      reason: '檢測到危險的刪除命令: unlink 根目錄',
-      command: 'unlink /'
-    },
-    {
-      pattern: /\brmdir\s+.*\/\s*$/i,
-      reason: '檢測到危險的刪除命令: rmdir 根目錄',
-      command: 'rmdir /'
-    },
-    // Dangerous file operations
-    {
-      pattern: />\s*\/dev\/null.*rm/i,
+      pattern: />\s*\/dev\/null.*\brm\b/i,
       reason: '檢測到危險的刪除操作: 重定向到 /dev/null 並刪除',
       command: '> /dev/null ... rm'
     },
-    // Shell dangerous patterns
+    // Variable expansion with rm -rf (injection risk)
     {
-      pattern: /\$\{.*\}.*rm.*-rf/i,
+      pattern: /\brm\s+-(rf|fr)\s+.*\$\{/i,
       reason: '檢測到危險的刪除命令: 變數展開配合 rm -rf',
-      command: '${...} rm -rf'
+      command: 'rm -rf ${...}'
     },
-    // Chinese deletion keywords in dangerous context
+    // mkfs / format disk
     {
-      pattern: /刪除.*所有|刪除.*全部|刪除.*根目錄|刪除.*系統/i,
-      reason: '檢測到危險的刪除意圖: 嘗試刪除所有/全部/根目錄/系統文件',
-      command: '刪除所有/全部'
+      pattern: /\bmkfs\b.*\/dev\//i,
+      reason: '檢測到危險的格式化命令: mkfs',
+      command: 'mkfs /dev/'
     },
-    // Dangerous delete operations in code blocks
+    // dd overwriting disk
     {
-      pattern: /```[\s\S]*?rm\s+-rf[\s\S]*?```/i,
-      reason: '檢測到危險的刪除命令: 在代碼區塊中包含 rm -rf',
-      command: 'rm -rf (in code block)'
-    },
-    {
-      pattern: /```[\s\S]*?rm\s+-r[\s\S]*?```/i,
-      reason: '檢測到危險的刪除命令: 在代碼區塊中包含 rm -r',
-      command: 'rm -r (in code block)'
+      pattern: /\bdd\b.*of=\/dev\//i,
+      reason: '檢測到危險的磁碟覆寫命令: dd of=/dev/',
+      command: 'dd of=/dev/'
     }
   ]
 
@@ -107,21 +87,6 @@ export function checkDangerousOperations(text: string): SecurityCheckResult {
         isDangerous: true,
         reason,
         detectedCommand: command
-      }
-    }
-  }
-
-  // Additional check: look for rm commands that might be dangerous
-  // but weren't caught by the patterns above
-  const rmMatch = text.match(/\brm\s+([^\s\n]+)/i)
-  if (rmMatch) {
-    const target = rmMatch[1]
-    // Check if target is a dangerous path
-    if (target === '/' || target === '/*' || target.startsWith('../') || target.includes('*')) {
-      return {
-        isDangerous: true,
-        reason: `檢測到危險的刪除命令: rm ${target} (可能刪除重要文件或目錄)`,
-        detectedCommand: `rm ${target}`
       }
     }
   }

@@ -1,6 +1,6 @@
 import cron, { ScheduledTask } from 'node-cron'
-import { existsSync, readFileSync } from 'fs'
-import { basename, extname } from 'path'
+import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } from 'fs'
+import { basename, extname, dirname } from 'path'
 import { getEnabledTasks, getTaskById, createExecutionLog, updateExecutionLog, updateExecutionLogOutput } from './database'
 
 // Text file extensions that can be embedded in prompt
@@ -51,6 +51,39 @@ function notifyExecutionUpdate(log: ExecutionLog): void {
       console.log('[Scheduler] Failed to notify update (window may be closed):', err)
     }
   }
+}
+
+const KNOWLEDGE_START = '<!-- KNOWLEDGE_START -->'
+const KNOWLEDGE_END = '<!-- KNOWLEDGE_END -->'
+const KNOWLEDGE_REGEX = /<!-- KNOWLEDGE_START -->([\s\S]*?)<!-- KNOWLEDGE_END -->/g
+
+function extractAndSaveKnowledge(task: Task, output: string): string {
+  if (!task.knowledge_file) return output
+
+  const matches = [...output.matchAll(KNOWLEDGE_REGEX)]
+  if (matches.length === 0) return output
+
+  try {
+    const knowledgeContent = matches.map(m => m[1].trim()).join('\n\n')
+    const date = new Date().toISOString().split('T')[0]
+    const entry = `\n\n## ${task.name} - ${date}\n\n${knowledgeContent}`
+
+    const filePath = task.knowledge_file.replace(/^~/, process.env.HOME || '')
+
+    if (!existsSync(filePath)) {
+      mkdirSync(dirname(filePath), { recursive: true })
+      writeFileSync(filePath, `# Knowledge Base\n${entry}`, 'utf-8')
+    } else {
+      appendFileSync(filePath, entry, 'utf-8')
+    }
+
+    console.log(`[Scheduler] Knowledge saved to ${filePath}`)
+  } catch (err) {
+    console.error(`[Scheduler] Failed to save knowledge:`, err)
+  }
+
+  // Remove knowledge markers from output
+  return output.replace(KNOWLEDGE_REGEX, '').trim()
 }
 
 async function executeTask(task: Task): Promise<ExecutionLog> {
@@ -128,6 +161,11 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
       }
     }
 
+    // Inject knowledge extraction instruction if knowledge_file is configured
+    if (task.knowledge_file) {
+      promptWithTextFiles += '\n\n在報告最後，請用 <!-- KNOWLEDGE_START --> 和 <!-- KNOWLEDGE_END --> 標記包裹本次分析中值得長期記錄的經驗、查詢技巧、資料陷阱或注意事項。只記錄可複用的知識，不要重複報告內容本身。如果沒有新的經驗值得記錄，就不需要加這個標記。'
+    }
+
     console.log(`[Scheduler] Calling ${task.cli_tool || 'claude'} CLI with prompt length: ${promptWithTextFiles.length}, model: ${task.model || 'default'}, binary attachments: ${binaryAttachments?.length || 0}`)
 
     // Throttle output updates to avoid too many DB writes
@@ -155,10 +193,16 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
 
     console.log(`[Scheduler] ${task.cli_tool || 'claude'} CLI result: success=${result.success}, output length=${result.output?.length || 0}`)
 
+    // Extract and save knowledge, then clean output
+    let cleanOutput = result.output
+    if (result.success && task.knowledge_file && result.output) {
+      cleanOutput = extractAndSaveKnowledge(task, result.output)
+    }
+
     // Update execution log
     const updatedLog = updateExecutionLog(log.id, {
       status: result.success ? 'success' : 'failed',
-      output: result.output,
+      output: cleanOutput,
       error: result.error
     })
 

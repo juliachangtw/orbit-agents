@@ -192,6 +192,19 @@ function registerIpcHandlers(): void {
     })
     return result.canceled ? [] : result.filePaths
   })
+
+  // Save file dialog handler (for knowledge file path selection)
+  ipcMain.handle('dialog:save-file', async (_event, defaultPath?: string) => {
+    const result = await dialog.showSaveDialog(mainWindow!, {
+      defaultPath: defaultPath || undefined,
+      filters: [
+        { name: 'Markdown', extensions: ['md'] },
+        { name: 'Text Files', extensions: ['txt'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    })
+    return result.canceled ? null : result.filePath
+  })
 }
 
 // App lifecycle

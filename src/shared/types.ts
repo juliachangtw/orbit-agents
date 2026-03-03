@@ -13,6 +13,7 @@ export interface Task {
   attachments: string | null // JSON array of file paths
   output_type: 'log' | 'both'
   email_to: string | null
+  knowledge_file: string | null
   week_interval: number // Default 1
   enabled: number // 0 or 1
   created_at: string
@@ -30,6 +31,7 @@ export interface CreateTaskInput {
   attachments?: string[] // Array of file paths
   output_type?: 'log' | 'both'
   email_to?: string
+  knowledge_file?: string
   week_interval?: number
   enabled?: boolean
 }

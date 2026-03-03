@@ -48,6 +48,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
             attachments: task.attachments ? JSON.parse(task.attachments) : [] as string[],
             output_type: (task.output_type || 'log') as 'log' | 'both',
             email_to: task.email_to || '',
+            knowledge_file: task.knowledge_file || '',
             week_interval: task.week_interval ?? 1,
             enabled: task.enabled === 1
         })
@@ -64,6 +65,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
             attachments: [],
             output_type: 'log',
             email_to: '',
+            knowledge_file: '',
             week_interval: 1,
             enabled: true
          })
@@ -90,6 +92,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
     attachments: task?.attachments ? JSON.parse(task.attachments) : [] as string[],
     output_type: (task?.output_type || 'log') as 'log' | 'both',
     email_to: task?.email_to || '',
+    knowledge_file: task?.knowledge_file || '',
     week_interval: task?.week_interval ?? 1,
     enabled: task ? task.enabled === 1 : true
   })
@@ -156,6 +159,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
         attachments: formData.attachments.length > 0 ? formData.attachments : undefined,
         output_type: formData.output_type,
         email_to: formData.email_to || undefined,
+        knowledge_file: formData.knowledge_file || undefined,
         week_interval: weekInterval,
         enabled: formData.enabled
       }
@@ -697,6 +701,55 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
                 />
               </div>
             )}
+
+            {/* Knowledge */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-600">
+                  Knowledge <span className="text-gray-400 font-normal">(Optional)</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, knowledge_file: prev.knowledge_file ? '' : `~/knowledge/${formData.name ? formData.name.toLowerCase().replace(/\s+/g, '-') : 'task'}.md` }))}
+                  className={`relative w-9 h-5 rounded-full transition-colors ${
+                    formData.knowledge_file ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                      formData.knowledge_file ? 'translate-x-4' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+              {formData.knowledge_file && (
+                <div className="space-y-1.5">
+                  <p className="text-sm text-gray-500">Auto-record reusable insights after each run</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={formData.knowledge_file}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, knowledge_file: e.target.value }))}
+                      className="flex-1 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition-colors"
+                      placeholder="~/knowledge/task-name.md"
+                    />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const defaultName = formData.name ? formData.name.toLowerCase().replace(/\s+/g, '-') : 'task'
+                        const filePath = await (window.electronApi.invoke as (channel: string, ...args: unknown[]) => Promise<string | null>)('dialog:save-file', `${defaultName}.md`)
+                        if (filePath) {
+                          setFormData((prev) => ({ ...prev, knowledge_file: filePath }))
+                        }
+                      }}
+                      className="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap"
+                    >
+                      Browse
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Enabled */}
             <div className="flex items-center gap-2 pt-2">
