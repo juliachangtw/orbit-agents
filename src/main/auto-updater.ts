@@ -351,13 +351,29 @@ export function registerAutoUpdaterIpcHandlers(): void {
         sendStatusToRenderer(mainWindow)
         return true
       } catch (err) {
+        console.error('[Updater] Asar update failed, falling back to full update:', err)
+        // Fall back to full update
+        asarUpdateInfo = null
         currentStatus = {
           ...currentStatus,
           downloading: false,
-          error: err instanceof Error ? err.message : 'Asar download failed'
+          progress: 0,
+          error: null,
+          updateMethod: 'full'
         }
         sendStatusToRenderer(mainWindow)
-        return false
+        try {
+          await autoUpdater.downloadUpdate()
+          return true
+        } catch (fullErr) {
+          currentStatus = {
+            ...currentStatus,
+            downloading: false,
+            error: fullErr instanceof Error ? fullErr.message : 'Download failed'
+          }
+          sendStatusToRenderer(mainWindow)
+          return false
+        }
       }
     }
 

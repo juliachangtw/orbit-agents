@@ -1,9 +1,14 @@
 import { app } from 'electron'
 import { createHash } from 'crypto'
 import { join } from 'path'
-import * as fs from 'fs'
 import * as https from 'https'
 import * as http from 'http'
+
+// Use original-fs to bypass Electron's asar interception
+// Electron patches `fs` to treat .asar files as virtual filesystems,
+// which breaks actual file operations on app.asar (copy, rename, etc.)
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fs = require('original-fs')
 
 const GITHUB_OWNER = 'mukiwu'
 const GITHUB_REPO = 'orbit-agents'
@@ -38,13 +43,25 @@ function getAsarPath(): string {
 }
 
 /**
- * Check if resources directory is writable (required for asar replacement)
+ * Check if asar update is possible (file exists and directory is writable)
  */
-function isResourcesWritable(): boolean {
+function canDoAsarUpdate(): boolean {
   try {
+    const asarPath = getAsarPath()
+    console.log('[Asar Updater] resourcesPath:', process.resourcesPath)
+    console.log('[Asar Updater] asarPath:', asarPath)
+
+    // Check asar file exists
+    if (!fs.existsSync(asarPath)) {
+      console.log('[Asar Updater] app.asar not found, falling back to full update')
+      return false
+    }
+
+    // Check directory is writable
     fs.accessSync(process.resourcesPath, fs.constants.W_OK)
     return true
-  } catch {
+  } catch (err) {
+    console.log('[Asar Updater] Cannot do asar update:', err)
     return false
   }
 }
@@ -163,8 +180,8 @@ export async function checkForAsarUpdate(): Promise<AsarUpdateResult> {
   const currentVersion = app.getVersion()
   const currentElectronVersion = process.versions.electron
 
-  // Check if resources directory is writable
-  if (!isResourcesWritable()) {
+  // Check if asar update is possible
+  if (!canDoAsarUpdate()) {
     return { type: 'full' }
   }
 
