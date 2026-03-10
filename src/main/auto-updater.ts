@@ -252,9 +252,12 @@ export function registerAutoUpdaterIpcHandlers(): void {
     return mainWindowRef
   }
 
+  // ---- Dev mode simulation ----
+  const DEV_SIMULATE_UPDATE = is.dev && false // Set to true to enable simulation
+
   // Check for updates manually
   ipcMain.handle('updater:check', async (): Promise<UpdateStatus> => {
-    if (is.dev) {
+    if (is.dev && !DEV_SIMULATE_UPDATE) {
       return {
         checking: false,
         available: false,
@@ -267,12 +270,52 @@ export function registerAutoUpdaterIpcHandlers(): void {
       }
     }
 
+    if (DEV_SIMULATE_UPDATE) {
+      const mainWindow = getMainWindow()
+      // Simulate checking delay
+      currentStatus = { ...currentStatus, checking: true, error: null, updateMethod: null }
+      sendStatusToRenderer(mainWindow)
+
+      await new Promise((r) => setTimeout(r, 1500))
+
+      currentStatus = {
+        checking: false,
+        available: true,
+        downloaded: false,
+        downloading: false,
+        progress: 0,
+        version: '1.1.0',
+        error: null,
+        updateMethod: 'asar'
+      }
+      sendStatusToRenderer(mainWindow)
+      return currentStatus
+    }
+
     return checkForUpdatesWithAsar(getMainWindow())
   })
 
   // Download update (asar or full)
   ipcMain.handle('updater:download', async (): Promise<boolean> => {
-    if (is.dev) return false
+    if (is.dev && !DEV_SIMULATE_UPDATE) return false
+
+    if (DEV_SIMULATE_UPDATE) {
+      const mainWindow = getMainWindow()
+      // Simulate download progress
+      for (let i = 0; i <= 100; i += 5) {
+        currentStatus = { ...currentStatus, downloading: true, progress: i }
+        sendStatusToRenderer(mainWindow)
+        await new Promise((r) => setTimeout(r, 150))
+      }
+      currentStatus = {
+        ...currentStatus,
+        downloading: false,
+        downloaded: true,
+        progress: 100
+      }
+      sendStatusToRenderer(mainWindow)
+      return true
+    }
 
     const mainWindow = getMainWindow()
 

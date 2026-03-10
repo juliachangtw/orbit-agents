@@ -25,11 +25,11 @@ export async function executeGeminiCli(
 ): Promise<GeminiCliResult> {
   const cliPath = getGeminiCliPath()
 
-  // Basic args - adapt as needed for the actual CLI
+  // Basic args
   const args: string[] = []
 
-  // Note: Gemini CLI may not support --skip-permissions like Claude CLI does
-  // We rely on automatic permission detection and reply instead
+  // Auto-approve all tool calls (equivalent to Claude's --dangerously-skip-permissions)
+  args.push('--yolo')
 
   // Add model if specified and not default
   // Currently mapping both gemini-3 and gemini-2.5 to default (no flag) 
@@ -44,32 +44,9 @@ export async function executeGeminiCli(
     }
   }
 
-  // Add allowed tools if specified
+  // Log MCP tools configuration (--allowedTools is deprecated, --yolo handles all approvals)
   if (mcpTools && mcpTools.length > 0) {
-    // Convert MCP tool patterns from mcp__server_name__* to proper format
-    // Gemini CLI might need different format, try multiple formats
-    const convertedTools = mcpTools.map(tool => {
-      // If format is mcp__server_name__*, extract server name
-      const mcpMatch = tool.match(/^mcp__(.+?)__\*$/)
-      if (mcpMatch) {
-        const serverName = mcpMatch[1]
-        // Try different formats that Gemini CLI might accept
-        // Format 1: mcp__server_name__*
-        // Format 2: server_name/*
-        // Format 3: mcp:server_name/*
-        return tool // Keep original format first
-      }
-      return tool
-    })
-    
-    const toolsString = convertedTools.join(',')
-    console.log('[Gemini CLI] MCP tools:', mcpTools)
-    console.log('[Gemini CLI] Converted tools:', convertedTools)
-    console.log('[Gemini CLI] Tools string:', toolsString)
-    args.push('--allowedTools', toolsString)
-    
-    // Also try adding --trust flag if available (may not be supported)
-    // Some CLI versions might need explicit trust for MCP tools
+    console.log('[Gemini CLI] MCP tools configured:', mcpTools)
   }
 
   // Add attachments
@@ -310,10 +287,24 @@ export async function executeGeminiCli(
       }
     })
 
+    // Known stderr noise patterns to filter from streaming output
+    const isStderrNoise = (line: string): boolean => {
+      const trimmed = line.trim()
+      if (!trimmed) return true
+      if (trimmed.startsWith('Loaded cached credentials')) return true
+      if (trimmed.startsWith('Loading extension:')) return true
+      if (trimmed.startsWith('Server ')) return true
+      if (trimmed.startsWith('Skill conflict detected:')) return true
+      if (trimmed.startsWith('Error executing tool')) return true
+      if (trimmed.includes('Tool execution denied by policy')) return true
+      if (trimmed.includes('denied by policy')) return true
+      return false
+    }
+
     proc.stderr.on('data', (data: Buffer) => {
       const text = data.toString()
       console.log('[Gemini CLI] stderr chunk:', text.substring(0, 200))
-      
+
       // Security check: Check stderr for dangerous operations
       const securityCheck = checkDangerousOperations(text)
       if (securityCheck.isDangerous) {
@@ -327,21 +318,39 @@ export async function executeGeminiCli(
         })
         return
       }
-      
+
       const replied = checkAndReply(text)
       stderr += text
       if (replied) {
         stderr += '\n[System: Auto-accepted permission request]\n'
       }
+
+      // Stream meaningful stderr content to UI (Gemini CLI often outputs response here)
+      const meaningfulLines = text.split('\n').filter(line => !isStderrNoise(line))
+      const meaningfulText = meaningfulLines.join('\n').trim()
+      if (meaningfulText && onOutput) {
+        stdout += meaningfulText + '\n'
+        onOutput(stdout)
+      }
     })
 
     proc.on('close', (code) => {
       console.log('[Gemini CLI] Process closed with code:', code)
+      console.log('[Gemini CLI] stdout length:', stdout.length, 'stderr length:', stderr.length)
 
       if (code === 0) {
+        // Gemini CLI may output response content to stderr instead of stdout
+        // Use stdout if available, otherwise fall back to stderr (excluding noise lines)
+        let output = stdout.trim()
+        if (!output && stderr.trim()) {
+          // Filter out noise lines from stderr (loading messages, warnings, etc.)
+          const stderrLines = stderr.split('\n')
+          const meaningfulLines = stderrLines.filter(line => !isStderrNoise(line))
+          output = meaningfulLines.join('\n').trim()
+        }
         resolve({
           success: true,
-          output: stdout.trim()
+          output
         })
       } else {
         resolve({
