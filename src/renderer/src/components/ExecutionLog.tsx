@@ -761,8 +761,9 @@ function ChatMessage({ content, isStreaming, showPermissionAlert }: { content: s
             prose-p:text-gray-700 prose-p:leading-relaxed prose-p:break-words prose-p:my-2
             prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:break-all
             prose-strong:text-gray-900 prose-strong:font-semibold
-            prose-code:text-blue-600 prose-code:bg-blue-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-normal prose-code:before:content-none prose-code:after:content-none prose-code:break-all
-            prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-pre:text-sm prose-pre:my-2
+            prose-code:text-blue-600 prose-code:bg-blue-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-normal prose-code:text-xs prose-code:before:content-none prose-code:after:content-none prose-code:break-all
+            prose-pre:bg-gray-950 prose-pre:text-gray-300 prose-pre:rounded-xl prose-pre:overflow-x-auto prose-pre:text-xs prose-pre:my-3 prose-pre:p-4 prose-pre:leading-relaxed prose-pre:shadow-inner
+            [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit [&_pre_code]:text-xs [&_pre_code]:leading-relaxed [&_pre_code]:rounded-none [&_pre_code]:shadow-none
             prose-ul:text-gray-700 prose-ol:text-gray-700 prose-ul:my-2 prose-ol:my-2
             prose-li:marker:text-gray-400
             [&_table]:w-full [&_table]:table-fixed [&_table]:text-sm [&_table]:border-collapse [&_table]:my-2
