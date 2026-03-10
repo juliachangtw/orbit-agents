@@ -38,3 +38,9 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+# TypeScript build cache
+tsconfig.tsbuildinfo
+
+# Claude Code local settings
+.claude/settings.local.json

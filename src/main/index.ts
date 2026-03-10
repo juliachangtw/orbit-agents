@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import fixPath from 'fix-path'
 import { initAutoUpdater, registerAutoUpdaterIpcHandlers } from './auto-updater'
+import { checkAndRollbackIfNeeded, markAsarUpdateSuccess } from './asar-updater'
 
 fixPath()
 import {
@@ -61,6 +62,8 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show()
+    // Mark asar update as successful after window is ready
+    markAsarUpdateSuccess()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -209,6 +212,12 @@ function registerIpcHandlers(): void {
 
 // App lifecycle
 app.whenReady().then(() => {
+  // Check if asar update needs rollback (before anything else)
+  const rolledBack = checkAndRollbackIfNeeded()
+  if (rolledBack) {
+    console.log('Asar update was rolled back to previous version')
+  }
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.orbit')
 

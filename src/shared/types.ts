@@ -83,6 +83,7 @@ export interface UpdateStatus {
   error: string | null
   releaseUrl?: string
   platform?: 'darwin' | 'win32' | 'linux'
+  updateMethod?: 'asar' | 'full' | null
 }
 
 // Claude CLI Types

@@ -1,6 +1,6 @@
 {
   "name": "orbit-agents",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "AI-Powered Cron Scheduler for Desktop",
   "main": "./out/main/index.js",
   "author": "Muki Wu",
@@ -12,7 +12,8 @@
     "postinstall": "electron-builder install-app-deps",
     "build:mac": "npm run build && electron-builder --mac",
     "build:win": "npm run build && electron-builder --win",
-    "build:linux": "npm run build && electron-builder --linux"
+    "build:linux": "npm run build && electron-builder --linux",
+    "prepare-asar": "node scripts/prepare-asar.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",

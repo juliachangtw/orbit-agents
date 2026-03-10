@@ -422,7 +422,11 @@ export default function Settings({}: SettingsProps) {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-blue-900">Version {updateStatus.version} is available!</p>
-                            <p className="text-xs text-blue-700 mt-1">A new version can be downloaded and installed.</p>
+                            <p className="text-xs text-blue-700 mt-1">
+                              {updateStatus.updateMethod === 'asar'
+                                ? 'A lightweight update is ready for quick download.'
+                                : 'A new version can be downloaded and installed.'}
+                            </p>
                           </div>
                           {updateStatus.releaseUrl ? (
                             <a
