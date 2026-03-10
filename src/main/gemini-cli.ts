@@ -296,8 +296,11 @@ export async function executeGeminiCli(
       if (trimmed.startsWith('Server ')) return true
       if (trimmed.startsWith('Skill conflict detected:')) return true
       if (trimmed.startsWith('Error executing tool')) return true
+      if (trimmed.startsWith('Attempt ') && trimmed.includes('Retrying')) return true
       if (trimmed.includes('Tool execution denied by policy')) return true
       if (trimmed.includes('denied by policy')) return true
+      if (trimmed.includes('exhausted your capacity')) return true
+      if (trimmed.includes('Retrying after')) return true
       return false
     }
 
