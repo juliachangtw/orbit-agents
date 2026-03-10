@@ -37,15 +37,22 @@ Orbit Agents is an AI-powered desktop cron scheduler built with Electron. It com
 ## Installation Guide
 
 ### Download
-You can find installation files in the `dist/` folder of the project:
-- **macOS**: `Orbit-1.0.5-arm64.dmg` (Apple Silicon) or `zip` file
-- **Windows**: `.exe` installer
+You can download the latest version from the [Releases](https://github.com/mukiwu/orbit-agents/releases) page:
+- **macOS**: `Orbit-Agents-1.0.8-arm64.dmg` (Apple Silicon) or `zip` file
+- **Windows**: `Orbit-Agents-Setup-1.0.8.exe` installer or `zip` file
 - **Linux**: `.AppImage` or `.deb`
 
 ### macOS Installation Note
-Since the current version does not include an Apple Developer certificate, macOS Gatekeeper may show a "can't be opened because it is from an unidentified developer" security warning upon first installation.
+Since the current version does not include an Apple Developer certificate, macOS Gatekeeper may block the app from opening.
 
-**Workaround:**
+**Option 1: Remove quarantine attribute (Recommended)**
+
+Open Terminal and run:
+```bash
+xattr -cr /Applications/Orbit\ Agents.app
+```
+
+**Option 2: Right-click to open**
 1. In Finder, hold the **Control key** and click the App icon (or right-click).
 2. Select **"Open"** from the menu.
 3. In the warning window that appears, click **"Open"** again.
