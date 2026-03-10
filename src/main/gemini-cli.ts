@@ -441,10 +441,12 @@ export async function listMcpServers(): Promise<McpServer[]> {
     })
 
     proc.on('close', (code) => {
-      console.log('[Gemini CLI] mcp list output:', stdout.substring(0, 500))
+      // Gemini CLI outputs mcp list to stderr, not stdout
+      const output = stdout || stderr
+      console.log('[Gemini CLI] mcp list output:', output.substring(0, 500))
 
       const servers: McpServer[] = []
-      const lines = stdout.split('\n')
+      const lines = output.split('\n')
 
       for (const line of lines) {
         // Clean the line of ANSI codes and whitespace
