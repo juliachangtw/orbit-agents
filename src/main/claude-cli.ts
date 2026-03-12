@@ -142,6 +142,8 @@ export async function executeClaudeCli(
     // Get session token from settings
     const sessionToken = getSetting('claude_session_token')
     const env = { ...process.env }
+    // Remove CLAUDECODE to avoid "nested session" error when launched from Claude Code
+    delete env.CLAUDECODE
     if (sessionToken) {
       env.CLAUDE_CODE_SESSION_ACCESS_TOKEN = sessionToken
     }
@@ -270,9 +272,11 @@ export async function testClaudeConnection(): Promise<ClaudeCliResult> {
     let stdout = ''
     let stderr = ''
 
+    const cleanEnv = { ...process.env }
+    delete cleanEnv.CLAUDECODE
     const proc = spawn(cliPath, ['--version'], {
       shell: true,
-      env: { ...process.env }
+      env: cleanEnv
     })
 
     proc.stdout.on('data', (data: Buffer) => {
@@ -316,9 +320,11 @@ export async function listMcpServers(): Promise<McpServer[]> {
     let stderr = ''
 
     // Use spawn without shell for proper handling
+    const cleanEnv = { ...process.env }
+    delete cleanEnv.CLAUDECODE
     const proc = spawn(cliPath, ['mcp', 'list'], {
       shell: false,
-      env: { ...process.env },
+      env: cleanEnv,
       stdio: ['ignore', 'pipe', 'pipe']
     })
 

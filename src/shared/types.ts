@@ -14,6 +14,7 @@ export interface Task {
   output_type: 'log' | 'both'
   email_to: string | null
   knowledge_file: string | null
+  project_path: string | null
   week_interval: number // Default 1
   enabled: number // 0 or 1
   created_at: string
@@ -32,6 +33,7 @@ export interface CreateTaskInput {
   output_type?: 'log' | 'both'
   email_to?: string
   knowledge_file?: string
+  project_path?: string
   week_interval?: number
   enabled?: boolean
 }
@@ -104,6 +106,22 @@ export interface McpServer {
   tools: string[]
 }
 
+// Skill Types
+export interface Skill {
+  name: string
+  description: string
+  invocation?: string
+  filePath: string
+  content: string
+  scope: 'user' | 'project'
+}
+
+export interface SkillScanResult {
+  skills: Skill[]
+  projectPath?: string
+  errors?: string[]
+}
+
 // IPC API Types
 export interface IpcApi {
   // Task operations
@@ -132,6 +150,10 @@ export interface IpcApi {
   // Gemini CLI operations
   'gemini:test': () => Promise<GeminiCliResult>
   'gemini:list-mcps': () => Promise<McpServer[]>
+
+  // Skill operations
+  'skill:scan': (projectPath?: string) => Promise<SkillScanResult>
+  'dialog:open-directory': () => Promise<string | null>
 
   // Auto-updater operations
   'updater:check': () => Promise<UpdateStatus>

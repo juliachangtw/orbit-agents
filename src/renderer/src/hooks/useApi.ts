@@ -8,7 +8,9 @@ import type {
   Settings,
   ClaudeCliResult,
   GeminiCliResult,
-  McpServer
+  McpServer,
+  Skill,
+  SkillScanResult
 } from '../../../shared/types'
 
 const api = window.electronApi
@@ -234,6 +236,51 @@ export function useGeminiCli() {
   }, [])
 
   return { testConnection, listMcps }
+}
+
+// ============ Skills Hooks ============
+
+export function useSkills() {
+  const [skills, setSkills] = useState<Skill[]>([])
+  const [loading, setLoading] = useState(false)
+  const [projectPath, setProjectPath] = useState<string | null>(null)
+
+  const scanSkills = useCallback(async (path?: string) => {
+    setLoading(true)
+    try {
+      const result: SkillScanResult = await api.invoke('skill:scan', path)
+      setSkills(result.skills)
+      if (result.projectPath) setProjectPath(result.projectPath)
+      return result
+    } catch (err) {
+      console.error('Failed to scan skills:', err)
+      return { skills: [], errors: [String(err)] }
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const selectProject = useCallback(async () => {
+    const dirPath = await (api.invoke as (channel: string) => Promise<string | null>)('dialog:open-directory')
+    if (dirPath) {
+      setProjectPath(dirPath)
+      await scanSkills(dirPath)
+      return dirPath
+    }
+    return null
+  }, [scanSkills])
+
+  const clearProject = useCallback(async () => {
+    setProjectPath(null)
+    await scanSkills()
+  }, [scanSkills])
+
+  const initProject = useCallback(async (path: string) => {
+    setProjectPath(path)
+    await scanSkills(path)
+  }, [scanSkills])
+
+  return { skills, loading, projectPath, setProjectPath, scanSkills, selectProject, clearProject, initProject }
 }
 
 export function useProcessInput() {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useTasks, useClaudeCli, useGeminiCli } from '../hooks/useApi'
-import type { Task, CreateTaskInput, McpServer, ModelType } from '../../../shared/types'
-import { RefreshCw, Sun, Calendar, CalendarDays } from 'lucide-react'
+import { useTasks, useClaudeCli, useGeminiCli, useSkills } from '../hooks/useApi'
+import type { Task, CreateTaskInput, McpServer, ModelType, Skill } from '../../../shared/types'
+import { RefreshCw, Sun, Calendar, CalendarDays, FolderOpen, Sparkles, X } from 'lucide-react'
 
 interface TaskFormProps {
   task: Task | null
@@ -23,6 +23,8 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
   const { createTask, updateTask } = useTasks()
   const { listMcps: listClaudeMcps } = useClaudeCli()
   const { listMcps: listGeminiMcps } = useGeminiCli()
+  const { skills, loading: loadingSkills, projectPath, setProjectPath, selectProject, clearProject, scanSkills, initProject } = useSkills()
+  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -52,8 +54,18 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
             week_interval: task.week_interval ?? 1,
             enabled: task.enabled === 1
         })
+        // Restore saved project path or clear it (sync only, scan separately)
+        if (task.project_path) {
+            setProjectPath(task.project_path)
+            scanSkills(task.project_path)
+        } else {
+            setProjectPath(null)
+            scanSkills()
+        }
     } else {
         // Reset to default for new task
+        setProjectPath(null)
+        scanSkills()
         setFormData({
             name: '',
             description: '',
@@ -70,7 +82,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
             enabled: true
          })
     }
-  }, [task])
+  }, [task, setProjectPath, scanSkills])
 
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>(initialSchedule.mode)
   const [frequency, setFrequency] = useState<FrequencyType>(initialSchedule.frequency)
@@ -120,6 +132,23 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
     })
   }
 
+  // Load user scope skills on mount
+  useEffect(() => {
+    scanSkills()
+  }, [scanSkills])
+
+  const handleSelectSkill = (skill: Skill) => {
+    setSelectedSkill(skill)
+    setFormData(prev => ({
+      ...prev,
+      prompt: skill.content
+    }))
+  }
+
+  const handleClearSkill = () => {
+    setSelectedSkill(null)
+  }
+
   useEffect(() => {
     const fetchMcps = async () => {
       setLoadingMcps(true)
@@ -160,6 +189,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
         output_type: formData.output_type,
         email_to: formData.email_to || undefined,
         knowledge_file: formData.knowledge_file || undefined,
+        project_path: projectPath || undefined,
         week_interval: weekInterval,
         enabled: formData.enabled
       }
@@ -469,6 +499,80 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
                     </div>
                   </div>
                 </div>
+              )}
+            </div>
+
+            {/* Skills */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-600">
+                  <Sparkles className="w-3.5 h-3.5 inline mr-1" />
+                  Skills <span className="text-gray-400 font-normal">(Optional)</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={selectProject}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <FolderOpen className="w-3.5 h-3.5" />
+                  {projectPath ? 'Change Project' : 'Select Project'}
+                </button>
+              </div>
+
+              {projectPath && (
+                <div className="flex items-center gap-2 mb-2 px-2.5 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                  <FolderOpen className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                  <span className="text-blue-700 truncate flex-1" title={projectPath}>
+                    {projectPath}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={clearProject}
+                    className="text-blue-400 hover:text-blue-600 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {loadingSkills ? (
+                <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
+                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-600 border-t-transparent"></div>
+                  Scanning skills...
+                </div>
+              ) : skills.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {skills.map((skill) => {
+                    const isSelected = selectedSkill?.filePath === skill.filePath
+                    return (
+                      <button
+                        key={skill.filePath}
+                        type="button"
+                        onClick={() => isSelected ? handleClearSkill() : handleSelectSkill(skill)}
+                        title={`${skill.description}${skill.scope === 'project' ? ' (project)' : ' (user)'}`}
+                        className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all ${
+                          isSelected
+                            ? 'bg-purple-100 border-purple-300 text-purple-700'
+                            : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {isSelected && (
+                          <svg className="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                        {skill.name}
+                        {skill.scope === 'project' && (
+                          <span className="ml-1 text-xs opacity-60">P</span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400">
+                  {projectPath ? 'No skills found in this project' : 'Select a project to load project skills'}
+                </p>
               )}
             </div>
 
