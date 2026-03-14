@@ -1,336 +1,290 @@
-import { app } from 'electron'
-import { createHash } from 'crypto'
-import { join } from 'path'
-import * as https from 'https'
-import * as http from 'http'
+import { app, net } from 'electron'
+import { join, dirname } from 'path'
+import { gunzipSync } from 'zlib'
 
 // Use original-fs to bypass Electron's asar interception
-// Electron patches `fs` to treat .asar files as virtual filesystems,
-// which breaks actual file operations on app.asar (copy, rename, etc.)
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const fs = require('original-fs')
+const originalFs = require('original-fs')
 
 const GITHUB_OWNER = 'mukiwu'
 const GITHUB_REPO = 'orbit-agents'
-const FLAG_FILE = 'asar-update-in-progress'
-const BACKUP_NAME = 'app.asar.bak'
-
-export interface AsarManifest {
-  version: string
-  electronVersion: string
-  sha256: string
-  size: number
-  fileName: string
-}
 
 export interface AsarUpdateResult {
   type: 'asar' | 'full' | 'none'
   version?: string
-  downloadUrl?: string
-  manifest?: AsarManifest
+  asarUrl?: string
 }
 
-function getFlagPath(): string {
-  return join(app.getPath('userData'), FLAG_FILE)
-}
+// ── Network helpers (using Electron's net module) ──
 
-function getBackupPath(): string {
-  return join(process.resourcesPath, BACKUP_NAME)
-}
-
-function getAsarPath(): string {
-  return join(process.resourcesPath, 'app.asar')
-}
-
-/**
- * Check if asar update is possible (file exists and directory is writable)
- */
-function canDoAsarUpdate(): boolean {
-  try {
-    const asarPath = getAsarPath()
-    console.log('[Asar Updater] resourcesPath:', process.resourcesPath)
-    console.log('[Asar Updater] asarPath:', asarPath)
-
-    // Check asar file exists
-    if (!fs.existsSync(asarPath)) {
-      console.log('[Asar Updater] app.asar not found, falling back to full update')
-      return false
-    }
-
-    // Check directory is writable
-    fs.accessSync(process.resourcesPath, fs.constants.W_OK)
-    return true
-  } catch (err) {
-    console.log('[Asar Updater] Cannot do asar update:', err)
-    return false
-  }
-}
-
-/**
- * Fetch JSON from a URL using Node.js built-in https
- */
-function fetchJson<T>(url: string): Promise<T> {
+function netFetch(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const options = {
-      headers: {
-        'User-Agent': `orbit-agents/${app.getVersion()}`,
-        Accept: 'application/vnd.github.v3+json'
-      }
-    }
-
-    https.get(url, options, (res) => {
-      // Follow redirects
-      if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        fetchJson<T>(res.headers.location).then(resolve).catch(reject)
+    const request = net.request(url)
+    let data = ''
+    request.on('response', (response) => {
+      if ([301, 302, 307, 308].includes(response.statusCode) && response.headers.location) {
+        const redirectUrl = Array.isArray(response.headers.location)
+          ? response.headers.location[0]
+          : response.headers.location
+        netFetch(redirectUrl).then(resolve).catch(reject)
         return
       }
-
-      if (res.statusCode !== 200) {
-        reject(new Error(`HTTP ${res.statusCode}`))
+      if (response.statusCode !== 200) {
+        reject(new Error(`HTTP ${response.statusCode}`))
         return
       }
-
-      let data = ''
-      res.on('data', (chunk) => (data += chunk))
-      res.on('end', () => {
-        try {
-          resolve(JSON.parse(data))
-        } catch (e) {
-          reject(e)
-        }
-      })
-      res.on('error', reject)
-    }).on('error', reject)
+      response.on('data', (chunk) => { data += chunk.toString() })
+      response.on('end', () => resolve(data))
+      response.on('error', reject)
+    })
+    request.on('error', reject)
+    request.end()
   })
 }
 
-/**
- * Download a file with progress reporting
- */
-function downloadFile(
+function netDownload(
   url: string,
   destPath: string,
   onProgress?: (percent: number) => void
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const makeRequest = (requestUrl: string): void => {
-      const protocol = requestUrl.startsWith('https') ? https : http
-      const options = {
-        headers: {
-          'User-Agent': `orbit-agents/${app.getVersion()}`,
-          Accept: 'application/octet-stream'
-        }
+    const request = net.request(url)
+    request.on('response', (response) => {
+      if ([301, 302, 307, 308].includes(response.statusCode) && response.headers.location) {
+        const redirectUrl = Array.isArray(response.headers.location)
+          ? response.headers.location[0]
+          : response.headers.location
+        netDownload(redirectUrl, destPath, onProgress).then(resolve).catch(reject)
+        return
       }
-
-      protocol.get(requestUrl, options, (res) => {
-        // Follow redirects
-        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          makeRequest(res.headers.location)
-          return
+      if (response.statusCode !== 200) {
+        reject(new Error(`Download failed: HTTP ${response.statusCode}`))
+        return
+      }
+      const contentLength = parseInt(
+        Array.isArray(response.headers['content-length'])
+          ? response.headers['content-length'][0]
+          : response.headers['content-length'] || '0',
+        10
+      )
+      const chunks: Buffer[] = []
+      let received = 0
+      response.on('data', (chunk: Buffer) => {
+        chunks.push(chunk)
+        received += chunk.length
+        if (contentLength > 0 && onProgress) {
+          onProgress(Math.round((received / contentLength) * 100))
         }
-
-        if (res.statusCode !== 200) {
-          reject(new Error(`Download failed: HTTP ${res.statusCode}`))
-          return
-        }
-
-        const totalSize = parseInt(res.headers['content-length'] || '0', 10)
-        let downloadedSize = 0
-        const file = fs.createWriteStream(destPath)
-
-        res.on('data', (chunk: Buffer) => {
-          downloadedSize += chunk.length
-          if (totalSize > 0 && onProgress) {
-            onProgress((downloadedSize / totalSize) * 100)
-          }
-        })
-
-        res.pipe(file)
-        file.on('finish', () => {
-          file.close()
+      })
+      response.on('end', () => {
+        try {
+          const buffer = Buffer.concat(chunks)
+          originalFs.writeFileSync(destPath, buffer)
           resolve()
-        })
-        file.on('error', (err) => {
-          fs.unlinkSync(destPath)
+        } catch (err) {
           reject(err)
-        })
-        res.on('error', (err) => {
-          fs.unlinkSync(destPath)
-          reject(err)
-        })
-      }).on('error', reject)
-    }
-
-    makeRequest(url)
+        }
+      })
+      response.on('error', reject)
+    })
+    request.on('error', reject)
+    request.end()
   })
 }
 
-/**
- * Calculate SHA-256 hash of a file
- */
-function computeSha256(filePath: string): string {
-  const content = fs.readFileSync(filePath)
-  return createHash('sha256').update(content).digest('hex')
+function compareVersions(a: string, b: string): number {
+  const pa = a.replace(/^v/, '').split('.').map(Number)
+  const pb = b.replace(/^v/, '').split('.').map(Number)
+  const len = Math.max(pa.length, pb.length)
+  for (let i = 0; i < len; i++) {
+    const na = pa[i] ?? 0
+    const nb = pb[i] ?? 0
+    if (na !== nb) return na - nb
+  }
+  return 0
 }
 
-/**
- * Check GitHub releases for an asar update
- */
+// ── Check for update ──
+
 export async function checkForAsarUpdate(): Promise<AsarUpdateResult> {
   const currentVersion = app.getVersion()
-  const currentElectronVersion = process.versions.electron
 
-  // Check if asar update is possible
-  if (!canDoAsarUpdate()) {
+  // Check if Resources dir is writable
+  try {
+    originalFs.accessSync(process.resourcesPath, originalFs.constants.W_OK)
+  } catch {
+    console.log('[Asar Updater] Resources dir not writable, falling back to full update')
     return { type: 'full' }
   }
 
-  const releaseUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`
-
-  interface GitHubAsset {
-    name: string
-    browser_download_url: string
-  }
-  interface GitHubRelease {
-    tag_name: string
-    assets: GitHubAsset[]
-  }
-
-  const release = await fetchJson<GitHubRelease>(releaseUrl)
-  const releaseVersion = release.tag_name.replace(/^v/, '')
-
-  // No update needed
-  if (releaseVersion === currentVersion) {
-    return { type: 'none' }
-  }
-
-  // Look for asar-manifest.json in assets
-  const manifestAsset = release.assets.find((a) => a.name === 'asar-manifest.json')
-  if (!manifestAsset) {
-    // No asar asset, fall back to full update
-    return { type: 'full' }
-  }
-
-  // Download and parse manifest
-  const manifest = await fetchJson<AsarManifest>(manifestAsset.browser_download_url)
-
-  // Check Electron version compatibility
-  if (manifest.electronVersion !== currentElectronVersion) {
-    console.log(
-      `Asar update skipped: Electron version mismatch (current: ${currentElectronVersion}, required: ${manifest.electronVersion})`
+  try {
+    const json = await netFetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`
     )
-    return { type: 'full' }
-  }
+    const data = JSON.parse(json)
+    const latestVersion = (data.tag_name || '').replace(/^v/, '')
 
-  // Find the asar file asset
-  const asarAsset = release.assets.find((a) => a.name === manifest.fileName)
-  if (!asarAsset) {
-    return { type: 'full' }
-  }
+    if (compareVersions(latestVersion, currentVersion) <= 0) {
+      return { type: 'none' }
+    }
 
-  return {
-    type: 'asar',
-    version: manifest.version,
-    downloadUrl: asarAsset.browser_download_url,
-    manifest
+    // Look for compressed asar asset (app-asar-v*.gz)
+    let asarUrl = ''
+    if (Array.isArray(data.assets)) {
+      const asarAsset = data.assets.find(
+        (a: { name: string }) => /^app-asar-v.*\.gz$/.test(a.name)
+      )
+      if (asarAsset) {
+        asarUrl = asarAsset.browser_download_url
+      }
+    }
+
+    if (!asarUrl) {
+      return { type: 'full' }
+    }
+
+    return {
+      type: 'asar',
+      version: latestVersion,
+      asarUrl
+    }
+  } catch (err) {
+    console.error('[Asar Updater] Check failed:', err)
+    return { type: 'full' }
   }
 }
 
-/**
- * Download and apply asar update
- */
-export async function downloadAndApplyAsar(
-  downloadUrl: string,
-  expectedSha256: string,
+// ── Download asar ──
+
+export async function downloadAsar(
+  asarUrl: string,
   onProgress?: (percent: number) => void
 ): Promise<void> {
-  const asarPath = getAsarPath()
-  const backupPath = getBackupPath()
-  // Download to resourcesPath for atomic rename
-  const tempPath = join(process.resourcesPath, 'app.asar.new')
-
-  // Step 1: Create backup
-  if (fs.existsSync(asarPath)) {
-    fs.copyFileSync(asarPath, backupPath)
-  }
-
-  // Step 2: Write update-in-progress flag
-  fs.writeFileSync(getFlagPath(), Date.now().toString())
+  const userData = app.getPath('userData')
+  const gzPath = join(userData, 'update-pending.asar.gz')
+  const asarPath = join(userData, 'update-pending.asar')
 
   try {
-    // Step 3: Download new asar
-    await downloadFile(downloadUrl, tempPath, onProgress)
+    // Download compressed asar
+    await netDownload(asarUrl, gzPath, onProgress)
 
-    // Step 4: Verify SHA-256
-    const actualSha256 = computeSha256(tempPath)
-    if (actualSha256 !== expectedSha256) {
-      fs.unlinkSync(tempPath)
-      throw new Error(`SHA-256 mismatch: expected ${expectedSha256}, got ${actualSha256}`)
-    }
+    // Decompress gzip
+    const gzBuffer = originalFs.readFileSync(gzPath)
+    const decompressed = gunzipSync(gzBuffer)
+    originalFs.writeFileSync(asarPath, decompressed)
 
-    // Step 5: Replace asar (rename is atomic on same filesystem)
-    fs.renameSync(tempPath, asarPath)
+    // Clean up gz
+    try { originalFs.unlinkSync(gzPath) } catch { /* ignore */ }
   } catch (err) {
-    // Clean up on failure
-    if (fs.existsSync(tempPath)) {
-      fs.unlinkSync(tempPath)
-    }
-    // Restore backup
-    if (fs.existsSync(backupPath)) {
-      fs.copyFileSync(backupPath, asarPath)
-    }
-    // Remove flag
-    if (fs.existsSync(getFlagPath())) {
-      fs.unlinkSync(getFlagPath())
-    }
+    // Clean up partial files
+    try { originalFs.unlinkSync(gzPath) } catch { /* ignore */ }
+    try { originalFs.unlinkSync(asarPath) } catch { /* ignore */ }
     throw err
   }
 }
 
-/**
- * Mark asar update as successful (call after app boots successfully)
- */
-export function markAsarUpdateSuccess(): void {
-  const flagPath = getFlagPath()
-  if (fs.existsSync(flagPath)) {
-    fs.unlinkSync(flagPath)
-  }
-  // Clean up backup after successful boot
-  const backupPath = getBackupPath()
-  if (fs.existsSync(backupPath)) {
-    fs.unlinkSync(backupPath)
-  }
-}
+// ── Install asar (replace and restart) ──
 
-/**
- * Check if a rollback is needed (call at app startup before anything else)
- */
-export function checkAndRollbackIfNeeded(): boolean {
-  const flagPath = getFlagPath()
-  const backupPath = getBackupPath()
+export function installAsar(): { success: boolean; error?: string } {
+  const userData = app.getPath('userData')
+  const pendingAsar = join(userData, 'update-pending.asar')
+  const resourcesDir = dirname(app.getAppPath())
+  const targetAsar = join(resourcesDir, 'app.asar')
+  const backupAsar = join(resourcesDir, 'app.asar.old')
 
-  if (fs.existsSync(flagPath) && fs.existsSync(backupPath)) {
-    // Flag exists = previous update didn't complete successfully
-    console.log('Asar update rollback: restoring previous version')
-    try {
-      const asarPath = getAsarPath()
-      fs.copyFileSync(backupPath, asarPath)
-      fs.unlinkSync(backupPath)
-      fs.unlinkSync(flagPath)
-      console.log('Asar rollback completed successfully')
-      return true
-    } catch (err) {
-      console.error('Asar rollback failed:', err)
+  try {
+    // Disable asar interception BEFORE any fs operations on .asar files
+    process.noAsar = true
+
+    // Verify pending asar exists
+    originalFs.accessSync(pendingAsar)
+
+    if (process.platform === 'win32') {
+      // Windows: app.asar is locked while running. Use a batch script to
+      // replace it after the process exits, then relaunch.
+      const { spawn } = require('child_process')
+      const exePath = app.getPath('exe')
+      const batPath = join(userData, 'update-apply.bat')
+      const batContent = [
+        '@echo off',
+        'timeout /t 3 /nobreak >nul',
+        `del /f /q "${backupAsar}" 2>nul`,
+        `move /y "${targetAsar}" "${backupAsar}"`,
+        `copy /y "${pendingAsar}" "${targetAsar}"`,
+        `del /f /q "${pendingAsar}" 2>nul`,
+        `start "" "${exePath}"`,
+        `del /f /q "${batPath}" 2>nul`
+      ].join('\r\n')
+      originalFs.writeFileSync(batPath, batContent, 'utf8')
+      const child = spawn('cmd.exe', ['/c', batPath], {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true
+      })
+      child.unref()
+      process.noAsar = false
+      app.quit()
+      return { success: true }
     }
-  }
 
-  return false
+    // macOS/Linux: direct overwrite (file isn't locked)
+    originalFs.copyFileSync(pendingAsar, targetAsar)
+
+    // Clean up pending file
+    try { originalFs.unlinkSync(pendingAsar) } catch { /* ignore */ }
+
+    // Read new version from the updated asar's package.json
+    process.noAsar = false
+    let newVersion = ''
+    try {
+      const asarPkg = JSON.parse(
+        require('fs').readFileSync(join(targetAsar, 'package.json'), 'utf8')
+      )
+      newVersion = asarPkg.version || ''
+    } catch { /* ignore */ }
+
+    // macOS: update Info.plist so the system "About" dialog shows the new version
+    if (process.platform === 'darwin' && newVersion) {
+      try {
+        const { execSync } = require('child_process')
+        const contentsDir = dirname(resourcesDir)
+        const plistPath = join(contentsDir, 'Info.plist')
+        execSync(
+          `/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${newVersion}" "${plistPath}"`
+        )
+        execSync(
+          `/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${newVersion}" "${plistPath}"`
+        )
+      } catch (plistErr) {
+        console.error('[Asar Updater] Failed to update Info.plist version:', plistErr)
+      }
+    }
+
+    // Relaunch
+    app.relaunch()
+    app.quit()
+    return { success: true }
+  } catch (err) {
+    process.noAsar = false
+    console.error('[Asar Updater] Install failed:', err)
+    return { success: false, error: err instanceof Error ? err.message : String(err) }
+  }
 }
 
-/**
- * Restart app after asar replacement
- */
-export function restartApp(): void {
-  app.relaunch()
-  app.exit(0)
+// ── Startup cleanup ──
+
+export function cleanupUpdateArtifacts(): void {
+  try {
+    const resourcesDir = dirname(app.getAppPath())
+    const backupAsar = join(resourcesDir, 'app.asar.old')
+    try { originalFs.unlinkSync(backupAsar) } catch { /* ignore */ }
+
+    const userData = app.getPath('userData')
+    const pendingGz = join(userData, 'update-pending.asar.gz')
+    const pendingAsar = join(userData, 'update-pending.asar')
+    try { originalFs.unlinkSync(pendingGz) } catch { /* ignore */ }
+    try { originalFs.unlinkSync(pendingAsar) } catch { /* ignore */ }
+  } catch {
+    // ignore cleanup errors
+  }
 }

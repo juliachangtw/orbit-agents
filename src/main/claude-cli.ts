@@ -148,9 +148,10 @@ export async function executeClaudeCli(
       env.CLAUDE_CODE_SESSION_ACCESS_TOKEN = sessionToken
     }
 
-    // Use spawn without shell to properly handle Unicode/Chinese characters
+    // Windows: shell:true required because claude.cmd can't be spawned directly
+    // macOS: shell:false to properly handle Unicode/Chinese characters
     const proc = spawn(cliPath, args, {
-      shell: false,
+      shell: process.platform === 'win32',
       env,
       cwd: process.env.HOME || '/',
       stdio: ['ignore', 'pipe', 'pipe'],  // stdin ignored, stdout/stderr piped
@@ -319,11 +320,10 @@ export async function listMcpServers(): Promise<McpServer[]> {
     let stdout = ''
     let stderr = ''
 
-    // Use spawn without shell for proper handling
     const cleanEnv = { ...process.env }
     delete cleanEnv.CLAUDECODE
     const proc = spawn(cliPath, ['mcp', 'list'], {
-      shell: false,
+      shell: process.platform === 'win32',
       env: cleanEnv,
       stdio: ['ignore', 'pipe', 'pipe']
     })

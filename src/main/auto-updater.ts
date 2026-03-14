@@ -3,8 +3,8 @@ import { BrowserWindow, ipcMain } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import {
   checkForAsarUpdate,
-  downloadAndApplyAsar,
-  restartApp,
+  downloadAsar,
+  installAsar,
   AsarUpdateResult
 } from './asar-updater'
 
@@ -320,7 +320,7 @@ export function registerAutoUpdaterIpcHandlers(): void {
     const mainWindow = getMainWindow()
 
     // Asar update path
-    if (currentStatus.updateMethod === 'asar' && asarUpdateInfo?.downloadUrl && asarUpdateInfo?.manifest) {
+    if (currentStatus.updateMethod === 'asar' && asarUpdateInfo?.asarUrl) {
       try {
         currentStatus = {
           ...currentStatus,
@@ -329,9 +329,8 @@ export function registerAutoUpdaterIpcHandlers(): void {
         }
         sendStatusToRenderer(mainWindow)
 
-        await downloadAndApplyAsar(
-          asarUpdateInfo.downloadUrl,
-          asarUpdateInfo.manifest.sha256,
+        await downloadAsar(
+          asarUpdateInfo.asarUrl,
           (percent) => {
             currentStatus = {
               ...currentStatus,
@@ -351,7 +350,7 @@ export function registerAutoUpdaterIpcHandlers(): void {
         sendStatusToRenderer(mainWindow)
         return true
       } catch (err) {
-        console.error('[Updater] Asar update failed, falling back to full update:', err)
+        console.error('[Updater] Asar download failed, falling back to full update:', err)
         // Fall back to full update
         asarUpdateInfo = null
         currentStatus = {
@@ -398,8 +397,7 @@ export function registerAutoUpdaterIpcHandlers(): void {
     if (is.dev) return
 
     if (currentStatus.updateMethod === 'asar') {
-      // Asar is already replaced, just restart
-      restartApp()
+      installAsar()
     } else {
       // Full update via electron-updater
       autoUpdater.quitAndInstall()
