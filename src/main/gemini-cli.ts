@@ -97,7 +97,7 @@ export async function executeGeminiCli(
     const proc = spawn(cliPath, args, {
       shell: false,
       env,
-      cwd: process.env.HOME || '/',
+      cwd: process.env.HOME || process.env.USERPROFILE || (process.platform === 'win32' ? process.env.SystemRoot || 'C:\\' : '/'),
       stdio: ['pipe', 'pipe', 'pipe'] // Enable stdin pipe
     })
 

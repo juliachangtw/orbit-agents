@@ -3,14 +3,20 @@ import { getSetting } from './database'
 import { checkDangerousOperations } from './security-check'
 import type { ClaudeCliResult, McpServer, ModelType } from '../shared/types'
 
+function getHomedir(): string {
+  return process.env.HOME || process.env.USERPROFILE || ''
+}
+
 function getClaudeCliPath(): string {
   // Return full path for execFile (which doesn't use shell)
   const customPath = getSetting('claude_cli_path')
   if (customPath) return customPath
 
-  // Default claude path - try common locations
-  const homedir = process.env.HOME || ''
-  return `${homedir}/.local/bin/claude`
+  // Windows: use 'claude' and rely on shell PATH resolution
+  if (process.platform === 'win32') return 'claude'
+
+  // macOS/Linux: default path
+  return `${getHomedir()}/.local/bin/claude`
 }
 
 const IDLE_TIMEOUT = 10 * 60 * 1000 // 10 minutes of no output = timeout
@@ -153,7 +159,7 @@ export async function executeClaudeCli(
     const proc = spawn(cliPath, args, {
       shell: process.platform === 'win32',
       env,
-      cwd: process.env.HOME || '/',
+      cwd: getHomedir() || (process.platform === 'win32' ? process.env.SystemRoot || 'C:\\' : '/'),
       stdio: ['ignore', 'pipe', 'pipe'],  // stdin ignored, stdout/stderr piped
       detached: false
     })
