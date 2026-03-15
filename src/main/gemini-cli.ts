@@ -21,7 +21,8 @@ export async function executeGeminiCli(
   onOutput?: OutputCallback,
   attachments?: string[],
   mcpTools?: string[],
-  executionId?: string
+  executionId?: string,
+  projectPath?: string | null
 ): Promise<GeminiCliResult> {
   const cliPath = getGeminiCliPath()
 
@@ -95,10 +96,11 @@ export async function executeGeminiCli(
     })
 
     const proc = spawn(cliPath, args, {
-      shell: false,
+      shell: process.platform === 'win32',
       env,
-      cwd: process.env.HOME || process.env.USERPROFILE || (process.platform === 'win32' ? process.env.SystemRoot || 'C:\\' : '/'),
-      stdio: ['pipe', 'pipe', 'pipe'] // Enable stdin pipe
+      cwd: projectPath || process.env.HOME || process.env.USERPROFILE || (process.platform === 'win32' ? process.env.SystemRoot || 'C:\\' : '/'),
+      stdio: ['pipe', 'pipe', 'pipe'], // Enable stdin pipe
+      windowsHide: true
     })
 
     if (executionId) {
@@ -385,7 +387,8 @@ export async function testGeminiConnection(): Promise<GeminiCliResult> {
     // Assume --version or help is a safe test
     const proc = spawn(cliPath, ['--version'], {
       shell: true,
-      env: { ...process.env }
+      env: { ...process.env },
+      windowsHide: true
     })
 
     proc.stdout.on('data', (data: Buffer) => {
@@ -430,9 +433,10 @@ export async function listMcpServers(): Promise<McpServer[]> {
 
     // Try to run 'mcp list' assuming it supports the standard command
     const proc = spawn(cliPath, ['mcp', 'list'], {
-      shell: false,
+      shell: process.platform === 'win32',
       env: { ...process.env },
-      stdio: ['ignore', 'pipe', 'pipe']
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true
     })
 
     proc.stdout.on('data', (data: Buffer) => {

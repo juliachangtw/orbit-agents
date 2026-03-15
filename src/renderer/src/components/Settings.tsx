@@ -511,7 +511,7 @@ export default function Settings({}: SettingsProps) {
                   placeholder="~/.local/bin/claude"
                   className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                 />
-                <p className="mt-1.5 text-xs text-gray-400">Leave empty to use the default system path.</p>
+                <p className="mt-1.5 text-xs text-gray-400">Leave empty to use the default system path. Windows users should use <code className="bg-gray-100 px-1 rounded">claude</code> instead of the full path to cli.js.</p>
               </div>
 
               <div>

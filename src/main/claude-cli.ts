@@ -91,7 +91,8 @@ export async function executeClaudeCli(
   mcpTools?: string[],
   model?: ModelType | null,
   onOutput?: OutputCallback,
-  attachments?: string[]
+  attachments?: string[],
+  projectPath?: string | null
 ): Promise<ClaudeCliResult> {
   const cliPath = getClaudeCliPath()
 
@@ -159,9 +160,10 @@ export async function executeClaudeCli(
     const proc = spawn(cliPath, args, {
       shell: process.platform === 'win32',
       env,
-      cwd: getHomedir() || (process.platform === 'win32' ? process.env.SystemRoot || 'C:\\' : '/'),
+      cwd: projectPath || getHomedir() || (process.platform === 'win32' ? process.env.SystemRoot || 'C:\\' : '/'),
       stdio: ['ignore', 'pipe', 'pipe'],  // stdin ignored, stdout/stderr piped
-      detached: false
+      detached: false,
+      windowsHide: true
     })
 
     console.log('[Claude CLI] Process spawned with PID:', proc.pid)
@@ -283,7 +285,8 @@ export async function testClaudeConnection(): Promise<ClaudeCliResult> {
     delete cleanEnv.CLAUDECODE
     const proc = spawn(cliPath, ['--version'], {
       shell: true,
-      env: cleanEnv
+      env: cleanEnv,
+      windowsHide: true
     })
 
     proc.stdout.on('data', (data: Buffer) => {
@@ -331,7 +334,8 @@ export async function listMcpServers(): Promise<McpServer[]> {
     const proc = spawn(cliPath, ['mcp', 'list'], {
       shell: process.platform === 'win32',
       env: cleanEnv,
-      stdio: ['ignore', 'pipe', 'pipe']
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true
     })
 
     proc.stdout.on('data', (data: Buffer) => {

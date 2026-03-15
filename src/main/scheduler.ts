@@ -68,7 +68,7 @@ function extractAndSaveKnowledge(task: Task, output: string): string {
     const date = new Date().toISOString().split('T')[0]
     const entry = `\n\n## ${task.name} - ${date}\n\n${knowledgeContent}`
 
-    const filePath = task.knowledge_file.replace(/^~/, process.env.HOME || '')
+    const filePath = task.knowledge_file.replace(/^~/, process.env.HOME || process.env.USERPROFILE || '')
 
     if (!existsSync(filePath)) {
       mkdirSync(dirname(filePath), { recursive: true })
@@ -185,10 +185,10 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
     let result: ClaudeCliResult | GeminiCliResult
 
     if (task.cli_tool === 'gemini') {
-      result = await executeGeminiCli(promptWithTextFiles, task.model, onOutput, binaryAttachments, mcpTools, log.id)
+      result = await executeGeminiCli(promptWithTextFiles, task.model, onOutput, binaryAttachments, mcpTools, log.id, task.project_path)
     } else {
       // Default to Claude
-      result = await executeClaudeCli(promptWithTextFiles, mcpTools, task.model, onOutput, binaryAttachments)
+      result = await executeClaudeCli(promptWithTextFiles, mcpTools, task.model, onOutput, binaryAttachments, task.project_path)
     }
 
     console.log(`[Scheduler] ${task.cli_tool || 'claude'} CLI result: success=${result.success}, output length=${result.output?.length || 0}`)
