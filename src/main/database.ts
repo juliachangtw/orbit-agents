@@ -104,6 +104,13 @@ export function initDatabase(): Database.Database {
     // Column already exists, ignore
   }
 
+  // Migration: Add skip_permissions column if not exists (default 1 = skip)
+  try {
+    db.exec(`ALTER TABLE tasks ADD COLUMN skip_permissions INTEGER DEFAULT 1`)
+  } catch {
+    // Column already exists, ignore
+  }
+
   return db
 }
 
@@ -150,6 +157,7 @@ export function createTask(input: CreateTaskInput): Task {
     email_to: input.email_to ?? null,
     knowledge_file: input.knowledge_file ?? null,
     project_path: input.project_path ?? null,
+    skip_permissions: input.skip_permissions !== false ? 1 : 0,
     week_interval: input.week_interval ?? 1,
     enabled: input.enabled !== false ? 1 : 0,
     created_at: now,
@@ -157,8 +165,8 @@ export function createTask(input: CreateTaskInput): Task {
   }
 
   db.prepare(`
-    INSERT INTO tasks (id, name, description, cron_expression, prompt, cli_tool, model, mcp_tools, attachments, output_type, email_to, knowledge_file, project_path, week_interval, enabled, created_at, updated_at)
-    VALUES (@id, @name, @description, @cron_expression, @prompt, @cli_tool, @model, @mcp_tools, @attachments, @output_type, @email_to, @knowledge_file, @project_path, @week_interval, @enabled, @created_at, @updated_at)
+    INSERT INTO tasks (id, name, description, cron_expression, prompt, cli_tool, model, mcp_tools, attachments, output_type, email_to, knowledge_file, project_path, skip_permissions, week_interval, enabled, created_at, updated_at)
+    VALUES (@id, @name, @description, @cron_expression, @prompt, @cli_tool, @model, @mcp_tools, @attachments, @output_type, @email_to, @knowledge_file, @project_path, @skip_permissions, @week_interval, @enabled, @created_at, @updated_at)
   `).run(task)
 
   return task
@@ -192,6 +200,7 @@ export function updateTask(input: UpdateTaskInput): Task {
     email_to: input.email_to !== undefined ? (input.email_to ?? null) : existing.email_to,
     knowledge_file: input.knowledge_file !== undefined ? (input.knowledge_file ?? null) : existing.knowledge_file,
     project_path: input.project_path !== undefined ? (input.project_path ?? null) : existing.project_path,
+    skip_permissions: input.skip_permissions !== undefined ? (input.skip_permissions ? 1 : 0) : existing.skip_permissions,
     week_interval: input.week_interval !== undefined ? input.week_interval : existing.week_interval,
     enabled: input.enabled !== undefined ? (input.enabled ? 1 : 0) : existing.enabled,
     updated_at: now
@@ -211,6 +220,7 @@ export function updateTask(input: UpdateTaskInput): Task {
       email_to = @email_to,
       knowledge_file = @knowledge_file,
       project_path = @project_path,
+      skip_permissions = @skip_permissions,
       week_interval = @week_interval,
       enabled = @enabled,
       updated_at = @updated_at

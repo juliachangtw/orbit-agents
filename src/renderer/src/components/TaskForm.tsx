@@ -52,6 +52,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
             email_to: task.email_to || '',
             knowledge_file: task.knowledge_file || '',
             week_interval: task.week_interval ?? 1,
+            skip_permissions: task.skip_permissions === 1,
             enabled: task.enabled === 1
         })
         // Restore saved project path or clear it (sync only, scan separately)
@@ -79,6 +80,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
             email_to: '',
             knowledge_file: '',
             week_interval: 1,
+            skip_permissions: true,
             enabled: true
          })
     }
@@ -106,6 +108,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
     email_to: task?.email_to || '',
     knowledge_file: task?.knowledge_file || '',
     week_interval: task?.week_interval ?? 1,
+    skip_permissions: task ? task.skip_permissions === 1 : true,
     enabled: task ? task.enabled === 1 : true
   })
 
@@ -190,6 +193,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
         email_to: formData.email_to || undefined,
         knowledge_file: formData.knowledge_file || undefined,
         project_path: projectPath ?? null,
+        skip_permissions: formData.skip_permissions,
         week_interval: weekInterval,
         enabled: formData.enabled
       }

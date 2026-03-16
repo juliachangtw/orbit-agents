@@ -93,19 +93,23 @@ export async function executeClaudeCli(
   model?: ModelType | null,
   onOutput?: OutputCallback,
   attachments?: string[],
-  projectPath?: string | null
+  projectPath?: string | null,
+  skipPermissions?: boolean
 ): Promise<ClaudeCliResult> {
   const cliPath = getClaudeCliPath()
 
   // Use --print for non-interactive mode
-  // Use --dangerously-skip-permissions to bypass permission prompts for scheduled tasks
   // Use stream-json to capture the full conversation including tool calls and intermediate results
   const args: string[] = [
     '--print',
     '--output-format', 'stream-json',
-    '--dangerously-skip-permissions',
     '--verbose'
   ]
+
+  // Add --dangerously-skip-permissions if enabled (default: true for backward compatibility)
+  if (skipPermissions !== false) {
+    args.push('--dangerously-skip-permissions')
+  }
 
   // Add model if specified
   if (model) {
