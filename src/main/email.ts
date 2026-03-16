@@ -42,6 +42,15 @@ export function resetTransporter(): void {
   transporter = null
 }
 
+function extractReportContent(output: string): string {
+  const match = output.match(/<!--\s*REPORT_START\s*-->([\s\S]*?)<!--\s*REPORT_END\s*-->/)
+  if (match) {
+    return match[1].trim()
+  }
+  // Fallback: use full output if no markers found
+  return output
+}
+
 export async function sendTaskResultEmail(
   task: Task,
   log: ExecutionLog
@@ -60,6 +69,7 @@ export async function sendTaskResultEmail(
   }
 
   const statusEmoji = log.status === 'success' ? '✅' : '❌'
+  const emailContent = log.output ? extractReportContent(log.output) : ''
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -95,7 +105,7 @@ export async function sendTaskResultEmail(
   </style>
 </head>
 <body>
-  ${log.output ? marked.parse(log.output) : '<p>No output.</p>'}
+  ${emailContent ? marked.parse(emailContent) : '<p>No output.</p>'}
 </body>
 </html>
 `
@@ -105,7 +115,7 @@ export async function sendTaskResultEmail(
     to: task.email_to,
     subject: `[Orbit Agents] ${statusEmoji} ${task.name}`,
     html: htmlContent,
-    text: log.output || 'No output.'
+    text: emailContent || 'No output.'
   })
 }
 

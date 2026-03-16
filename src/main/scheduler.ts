@@ -161,6 +161,11 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
       }
     }
 
+    // Inject email report marker instruction if email is configured
+    if (task.output_type === 'both' && task.email_to) {
+      promptWithTextFiles += '\n\n請將最終報告內容用 <!-- REPORT_START --> 和 <!-- REPORT_END --> 標記包裹。標記之外的思考過程、執行步驟等不會出現在 email 中，只有標記內的內容會被寄送。請確保報告內容完整且格式良好。'
+    }
+
     // Inject knowledge extraction instruction if knowledge_file is configured
     if (task.knowledge_file) {
       promptWithTextFiles += '\n\n在報告最後，請用 <!-- KNOWLEDGE_START --> 和 <!-- KNOWLEDGE_END --> 標記包裹本次分析中值得長期記錄的經驗、查詢技巧、資料陷阱或注意事項。只記錄可複用的知識，不要重複報告內容本身。如果沒有新的經驗值得記錄，就不需要加這個標記。'
