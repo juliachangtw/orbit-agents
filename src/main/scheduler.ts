@@ -53,6 +53,43 @@ function notifyExecutionUpdate(log: ExecutionLog): void {
   }
 }
 
+// Retry configuration for network failures
+const MAX_RETRIES = 3
+const RETRY_DELAYS = [30_000, 60_000, 120_000] // 30s, 1m, 2m
+
+// Patterns that indicate a network/transient error worth retrying
+const NETWORK_ERROR_PATTERNS = [
+  'ENOTFOUND',
+  'ETIMEDOUT',
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'EPIPE',
+  'EAI_AGAIN',
+  'socket hang up',
+  'network error',
+  'getaddrinfo',
+  'connect EHOSTUNREACH',
+  'fetch failed',
+  'request to .* failed',
+  'overloaded',
+  '529',  // Anthropic overloaded
+  '503',  // Service unavailable
+  '502',  // Bad gateway
+  '504',  // Gateway timeout
+  'rate limit',
+  'too many requests',
+  '429',
+]
+
+function isNetworkError(error: string): boolean {
+  const lower = error.toLowerCase()
+  return NETWORK_ERROR_PATTERNS.some(pattern => lower.includes(pattern.toLowerCase()))
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 const KNOWLEDGE_START = '<!-- KNOWLEDGE_START -->'
 const KNOWLEDGE_END = '<!-- KNOWLEDGE_END -->'
 const KNOWLEDGE_REGEX = /<!-- KNOWLEDGE_START -->([\s\S]*?)<!-- KNOWLEDGE_END -->/g
@@ -188,27 +225,60 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
     }
 
     let result: ClaudeCliResult | GeminiCliResult
+    let lastError = ''
 
-    if (task.cli_tool === 'gemini') {
-      result = await executeGeminiCli(promptWithTextFiles, task.model, onOutput, binaryAttachments, mcpTools, log.id, task.project_path)
-    } else {
-      // Default to Claude
-      result = await executeClaudeCli(promptWithTextFiles, mcpTools, task.model, onOutput, binaryAttachments, task.project_path)
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      if (attempt > 0) {
+        const delay = RETRY_DELAYS[attempt - 1]
+        console.log(`[Scheduler] Retry ${attempt}/${MAX_RETRIES} for task ${task.name} after ${delay / 1000}s delay (error: ${lastError})`)
+
+        // Update log to show retry status
+        const retryLog = updateExecutionLogOutput(log.id, `⏳ 網路錯誤，${delay / 1000} 秒後自動重試（第 ${attempt}/${MAX_RETRIES} 次）...\n錯誤: ${lastError}`)
+        notifyExecutionUpdate(retryLog)
+
+        await sleep(delay)
+      }
+
+      if (task.cli_tool === 'gemini') {
+        result = await executeGeminiCli(promptWithTextFiles, task.model, onOutput, binaryAttachments, mcpTools, log.id, task.project_path)
+      } else {
+        result = await executeClaudeCli(promptWithTextFiles, mcpTools, task.model, onOutput, binaryAttachments, task.project_path, task.skip_permissions === 1)
+      }
+
+      // If success or non-network error, stop retrying
+      if (result.success) {
+        if (attempt > 0) {
+          console.log(`[Scheduler] Task ${task.name} succeeded on retry ${attempt}`)
+        }
+        break
+      }
+
+      const errorText = result.error || result.output || ''
+      if (!isNetworkError(errorText)) {
+        console.log(`[Scheduler] Task ${task.name} failed with non-network error, not retrying`)
+        break
+      }
+
+      lastError = errorText
+      if (attempt === MAX_RETRIES) {
+        console.log(`[Scheduler] Task ${task.name} failed after ${MAX_RETRIES} retries`)
+        result.error = `${result.error}\n\n⚠️ 已重試 ${MAX_RETRIES} 次仍然失敗`
+      }
     }
 
-    console.log(`[Scheduler] ${task.cli_tool || 'claude'} CLI result: success=${result.success}, output length=${result.output?.length || 0}`)
+    console.log(`[Scheduler] ${task.cli_tool || 'claude'} CLI result: success=${result!.success}, output length=${result!.output?.length || 0}`)
 
     // Extract and save knowledge, then clean output
-    let cleanOutput = result.output
-    if (result.success && task.knowledge_file && result.output) {
-      cleanOutput = extractAndSaveKnowledge(task, result.output)
+    let cleanOutput = result!.output
+    if (result!.success && task.knowledge_file && result!.output) {
+      cleanOutput = extractAndSaveKnowledge(task, result!.output)
     }
 
     // Update execution log
     const updatedLog = updateExecutionLog(log.id, {
-      status: result.success ? 'success' : 'failed',
+      status: result!.success ? 'success' : 'failed',
       output: cleanOutput,
-      error: result.error
+      error: result!.error
     })
 
     notifyExecutionUpdate(updatedLog)
