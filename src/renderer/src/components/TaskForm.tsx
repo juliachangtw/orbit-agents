@@ -189,7 +189,7 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
         output_type: formData.output_type,
         email_to: formData.email_to || undefined,
         knowledge_file: formData.knowledge_file || undefined,
-        project_path: projectPath || undefined,
+        project_path: projectPath ?? null,
         week_interval: weekInterval,
         enabled: formData.enabled
       }

@@ -33,7 +33,7 @@ export interface CreateTaskInput {
   output_type?: 'log' | 'both'
   email_to?: string
   knowledge_file?: string
-  project_path?: string
+  project_path?: string | null
   week_interval?: number
   enabled?: boolean
 }

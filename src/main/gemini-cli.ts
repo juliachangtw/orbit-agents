@@ -1,4 +1,5 @@
 import { spawn } from 'child_process'
+import { existsSync } from 'fs'
 import { getSetting } from './database'
 import { registerProcess } from './process-manager'
 import { checkDangerousOperations } from './security-check'
@@ -95,10 +96,14 @@ export async function executeGeminiCli(
       GEMINI_ALLOWED_TOOLS: env.GEMINI_ALLOWED_TOOLS
     })
 
+    // Validate cwd: projectPath may not exist (e.g. removed folder), fall back to home
+    const homedir = process.env.HOME || process.env.USERPROFILE || '/'
+    const cwd = (projectPath && existsSync(projectPath)) ? projectPath : homedir
+
     const proc = spawn(cliPath, args, {
       shell: process.platform === 'win32',
       env,
-      cwd: projectPath || process.env.HOME || process.env.USERPROFILE || (process.platform === 'win32' ? process.env.SystemRoot || 'C:\\' : '/'),
+      cwd,
       stdio: ['pipe', 'pipe', 'pipe'], // Enable stdin pipe
       windowsHide: true
     })
@@ -433,7 +438,7 @@ export async function listMcpServers(): Promise<McpServer[]> {
 
     // Try to run 'mcp list' assuming it supports the standard command
     const proc = spawn(cliPath, ['mcp', 'list'], {
-      shell: process.platform === 'win32',
+      shell: true,
       env: { ...process.env },
       stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true

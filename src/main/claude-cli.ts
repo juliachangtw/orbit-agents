@@ -1,4 +1,5 @@
 import { spawn, execFile } from 'child_process'
+import { existsSync } from 'fs'
 import { getSetting } from './database'
 import { checkDangerousOperations } from './security-check'
 import type { ClaudeCliResult, McpServer, ModelType } from '../shared/types'
@@ -160,7 +161,7 @@ export async function executeClaudeCli(
     const proc = spawn(cliPath, args, {
       shell: process.platform === 'win32',
       env,
-      cwd: projectPath || getHomedir() || (process.platform === 'win32' ? process.env.SystemRoot || 'C:\\' : '/'),
+      cwd: (projectPath && existsSync(projectPath)) ? projectPath : (getHomedir() || (process.platform === 'win32' ? process.env.SystemRoot || 'C:\\' : '/')),
       stdio: ['ignore', 'pipe', 'pipe'],  // stdin ignored, stdout/stderr piped
       detached: false,
       windowsHide: true
@@ -332,7 +333,7 @@ export async function listMcpServers(): Promise<McpServer[]> {
     const cleanEnv = { ...process.env }
     delete cleanEnv.CLAUDECODE
     const proc = spawn(cliPath, ['mcp', 'list'], {
-      shell: process.platform === 'win32',
+      shell: true,
       env: cleanEnv,
       stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true

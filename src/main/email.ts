@@ -106,6 +106,9 @@ export async function sendTaskResultEmail(
 </head>
 <body>
   ${emailContent ? marked.parse(emailContent) : '<p>No output.</p>'}
+  <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #9ca3af;">
+    Powered by <a href="https://mukiwu.github.io/orbit-agents/" style="color: #7c3aed; text-decoration: none;">Orbit Agents</a> — AI-Powered Cron Scheduler for Desktop
+  </div>
 </body>
 </html>
 `
