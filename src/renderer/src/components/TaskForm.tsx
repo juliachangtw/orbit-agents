@@ -38,6 +38,16 @@ export default function TaskForm({ task, onClose, onSaved, variant = 'modal' }: 
 
   // Reset form when task changes
   useEffect(() => {
+    const parsed = parseCronToSimple(task?.cron_expression || '0 9 * * *')
+    setScheduleMode(parsed.mode)
+    setFrequency(parsed.frequency)
+    setIntervalValue(parsed.intervalValue)
+    setIntervalUnit(parsed.intervalUnit)
+    setScheduleTime(parsed.time)
+    setSelectedWeekdays(parsed.weekdays)
+    setWeekInterval(task?.week_interval || parsed.weekInterval)
+    setMonthDay(parsed.monthDay)
+
     if (task) {
         setFormData({
             name: task.name || '',
