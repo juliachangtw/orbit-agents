@@ -139,8 +139,13 @@ export async function executeClaudeCli(
     })
   }
 
-  // Add the prompt with -p flag (required when using --file)
-  args.push('-p', prompt)
+  // Windows: pass prompt via stdin to avoid cmd.exe mangling arguments
+  // (cmd.exe can misinterpret "/" as switch prefix, splitting the prompt)
+  // macOS/Linux: pass prompt via -p flag (shell:false, no escaping issues)
+  const useStdinPrompt = process.platform === 'win32'
+  if (!useStdinPrompt) {
+    args.push('-p', prompt)
+  }
 
   return new Promise((resolve) => {
     let stdout = ''
@@ -150,6 +155,9 @@ export async function executeClaudeCli(
 
     const fullCommand = `${cliPath} ${args.map(a => `"${a}"`).join(' ')}`
     console.log('[Claude CLI] Executing:', fullCommand)
+    if (useStdinPrompt) {
+      console.log('[Claude CLI] Prompt will be sent via stdin (Windows mode)')
+    }
 
     // Get session token from settings
     const sessionToken = getSetting('claude_session_token')
@@ -166,10 +174,16 @@ export async function executeClaudeCli(
       shell: process.platform === 'win32',
       env,
       cwd: (projectPath && existsSync(projectPath)) ? projectPath : (getHomedir() || (process.platform === 'win32' ? process.env.SystemRoot || 'C:\\' : '/')),
-      stdio: ['ignore', 'pipe', 'pipe'],  // stdin ignored, stdout/stderr piped
+      stdio: [useStdinPrompt ? 'pipe' : 'ignore', 'pipe', 'pipe'],
       detached: false,
       windowsHide: true
     })
+
+    // Windows: write prompt to stdin to avoid cmd.exe argument escaping issues
+    if (useStdinPrompt && proc.stdin) {
+      proc.stdin.write(prompt)
+      proc.stdin.end()
+    }
 
     console.log('[Claude CLI] Process spawned with PID:', proc.pid)
 
