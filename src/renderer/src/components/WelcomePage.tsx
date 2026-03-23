@@ -1,6 +1,12 @@
 
-import { useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import screenshot from '../assets/screenshot.png'
+import screenshotLog from '../assets/screenshot-log.png'
+
+const SLIDES = [
+  { src: screenshot, alt: 'Orbit Agents — task scheduling interface' },
+  { src: screenshotLog, alt: 'Orbit Agents — execution log with AI output' },
+]
 import pkg from '../../../../package.json'
 
 const LATEST_VERSION = pkg.version
@@ -137,6 +143,73 @@ const FEATURES = [
   },
 ]
 
+function ScreenshotSlider() {
+  const [current, setCurrent] = useState(0)
+
+  const next = useCallback(() => setCurrent((i) => (i + 1) % SLIDES.length), [])
+  const prev = useCallback(() => setCurrent((i) => (i - 1 + SLIDES.length) % SLIDES.length), [])
+
+  // Auto-advance every 5 seconds
+  useEffect(() => {
+    const timer = setInterval(next, 5000)
+    return () => clearInterval(timer)
+  }, [next])
+
+  return (
+    <div className="mt-16 w-full max-w-5xl mx-auto">
+      <div className="relative group">
+        {/* Image container — fixed aspect ratio prevents layout shift */}
+        <div className="rounded-xl overflow-hidden shadow-2xl ring-1 ring-gray-900/10 relative aspect-[16/10] bg-white">
+          {SLIDES.map((slide, i) => (
+            <img
+              key={i}
+              src={slide.src}
+              alt={slide.alt}
+              className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-500 ${
+                i === current ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Prev / Next arrows */}
+        <button
+          onClick={prev}
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm shadow-lg ring-1 ring-black/5 flex items-center justify-center text-gray-600 hover:text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-label="Previous screenshot"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          onClick={next}
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm shadow-lg ring-1 ring-black/5 flex items-center justify-center text-gray-600 hover:text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-label="Next screenshot"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Dots */}
+      <div className="flex justify-center gap-2 mt-4">
+        {SLIDES.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`w-2 h-2 rounded-full transition-all ${
+              i === current ? 'bg-blue-600 w-6' : 'bg-gray-300 hover:bg-gray-400'
+            }`}
+            aria-label={`Go to screenshot ${i + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function WelcomePage() {
   const platform = useMemo(() => detectPlatform(), [])
   const primaryDownloadUrl = platform === 'windows' ? WIN_DOWNLOAD_URL : MAC_DOWNLOAD_URL
@@ -255,14 +328,8 @@ export default function WelcomePage() {
             </a>
           </div>
 
-          {/* Screenshot */}
-          <div className="mt-16 w-full max-w-5xl mx-auto rounded-xl overflow-hidden shadow-2xl ring-1 ring-gray-900/10">
-            <img
-              src={screenshot}
-              alt="Orbit Agents — task scheduling interface"
-              className="w-full h-auto bg-white"
-            />
-          </div>
+          {/* Screenshot Slider */}
+          <ScreenshotSlider />
         </div>
       </section>
 
