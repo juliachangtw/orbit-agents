@@ -188,7 +188,7 @@ export default function WelcomePage() {
               href={primaryDownloadUrl}
               className="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors"
             >
-              {primaryDownloadLabel}
+              Download
             </a>
           </div>
         </div>
@@ -359,6 +359,85 @@ export default function WelcomePage() {
                 <p className="text-sm text-gray-600 leading-relaxed">{feature.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ====== Installation Note ====== */}
+      <section className="relative z-10 py-24 bg-white/50">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-4 font-display">
+            Installation
+          </h2>
+          <p className="text-lg text-gray-500 text-center mb-12 max-w-xl mx-auto">
+            Download, install, and you&apos;re ready to go.
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* macOS */}
+            <div className="bg-white rounded-2xl p-8 ring-1 ring-gray-900/5 shadow-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-11 h-11 bg-gray-100 rounded-xl flex items-center justify-center text-gray-700">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M17.05 19.349c-.854 1.25-1.764 2.495-3.13 2.52-1.353.025-1.788-.804-3.34-.804-1.536 0-2.004.78-3.296.828-1.304.049-2.296-1.325-3.125-2.524C2.378 16.63 1.01 12.062 2.72 8.996c.884-1.556 2.464-2.537 4.195-2.564 1.305-.022 2.535.877 3.333.877.785 0 2.256-1.085 3.826-.917.653.027 2.49.255 3.655 1.964-.093.058-2.186 1.275-2.164 3.81.025 3.012 2.67 4.025 2.697 4.036-.026.069-.418 1.436-1.365 2.809l-.248.34zM12.984 3.52c.732-.888 1.225-2.122 1.09-3.267-1.056.042-2.336.78-3.087 1.635-.678.756-1.27 1.96-1.096 3.12 1.183.091 2.39-.63 3.093-1.488z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 font-display">macOS</h3>
+              </div>
+
+              <p className="text-sm text-gray-600 mb-4">
+                Since Orbit Agents doesn&apos;t have an Apple Developer certificate yet, macOS Gatekeeper may block the app. Fix it with either method:
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-800 mb-2">Option 1: Terminal command (Recommended)</p>
+                  <code className="block bg-gray-50 rounded-lg px-4 py-3 text-xs font-mono text-gray-800 border border-gray-100">
+                    xattr -cr /Applications/Orbit\ Agents.app
+                  </code>
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-gray-800 mb-2">Option 2: Right-click to open</p>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600">
+                    <li>Right-click (or Control-click) the app in Finder</li>
+                    <li>Select <strong>&quot;Open&quot;</strong></li>
+                    <li>Click <strong>&quot;Open&quot;</strong> again in the dialog</li>
+                  </ol>
+                </div>
+
+                <p className="text-xs text-gray-400 pt-1">
+                  Only needed the first time — after that, the app opens normally.
+                </p>
+              </div>
+            </div>
+
+            {/* Windows */}
+            <div className="bg-white rounded-2xl p-8 ring-1 ring-gray-900/5 shadow-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M0 3.449L9.75 2.1v9.451H0m9.75 9.413L0 19.488V12h9.75m2.25-10.413L24 0v11.458H12M24 24l-12-1.583v-9.967H24"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 font-display">Windows</h3>
+              </div>
+
+              <p className="text-sm text-gray-600 mb-4">
+                Windows SmartScreen may show a warning for unsigned apps. Click through to proceed:
+              </p>
+
+              <div>
+                <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600">
+                  <li>Click <strong>&quot;More info&quot;</strong> on the SmartScreen popup</li>
+                  <li>Click <strong>&quot;Run anyway&quot;</strong></li>
+                </ol>
+
+                <p className="text-xs text-gray-400 pt-4">
+                  Or use the portable .zip version — no installer, no SmartScreen.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
