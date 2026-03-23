@@ -1,10 +1,30 @@
 # Orbit Agents
 
+### Your AI tasks, on autopilot.
+
+Schedule Claude or Gemini to run automatically on your desktop. No servers, no cloud fees, no node wiring — just write a prompt, pick a schedule, and let it work for you.
+
 [中文說明 (Traditional Chinese)](./Readme_zh-tw.md)
 
 ![Orbit Agents Screenshot](src/renderer/src/assets/screenshot.png)
 
-Orbit Agents is an AI-powered desktop cron scheduler built with Electron. It combines a modern Cron scheduling system with powerful AI integration (Claude & Gemini), allowing you to automate various tasks from simple script execution to complex AI-assisted workflows.
+## Get Started in 3 Steps
+
+1. **Pick your AI** → Claude (Sonnet / Opus / Haiku) or Gemini (2 / 2.5 / 3)
+2. **Write your prompt** → Tell the AI what to do in plain language
+3. **Set a schedule** → Daily, weekly, monthly, or custom cron expression
+
+That's it. Orbit handles the rest.
+
+## Why Orbit Agents?
+
+| | n8n / Zapier | Orbit Agents |
+|--|--|--|
+| Cost | Cloud hosting fees | **Free**, runs locally |
+| Setup | Visual node wiring | **Write a prompt** |
+| AI | Requires extra integration | **Claude & Gemini built-in** |
+| Data | Stored in the cloud | **100% on your machine** |
+| Source | Proprietary / limited | **Open source (MIT)** |
 
 ## Key Features
 
