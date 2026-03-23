@@ -58,8 +58,8 @@ That's it. Orbit handles the rest.
 
 ### Download
 You can download the latest version from the [Releases](https://github.com/mukiwu/orbit-agents/releases) page:
-- **macOS**: `Orbit-Agents-1.0.8-arm64.dmg` (Apple Silicon) or `zip` file
-- **Windows**: `Orbit-Agents-Setup-1.0.8.exe` installer or `zip` file
+- **macOS**: `Orbit-Agents-1.0.15-arm64.dmg` (Apple Silicon) or `zip` file
+- **Windows**: `Orbit-Agents-Setup-1.0.15.exe` installer or `zip` file
 - **Linux**: `.AppImage` or `.deb`
 
 ### macOS Installation Note
