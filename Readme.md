@@ -1,5 +1,7 @@
 # Orbit Agents
 
+> 🚀 **[We're launching on Product Hunt — March 24!](https://www.producthunt.com/products/orbit-agents?launch=orbit-agents)** Come support us!
+
 ### Your AI tasks, on autopilot.
 
 Schedule Claude or Gemini to run automatically on your desktop. No servers, no cloud fees, no node wiring — just write a prompt, pick a schedule, and let it work for you.
