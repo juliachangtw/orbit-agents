@@ -80,6 +80,9 @@ export async function executeGeminiCli(
     const env = { ...process.env }
     if (apiKey) {
       env.GEMINI_API_KEY = apiKey
+    } else {
+      // Remove inherited shell env var so Gemini CLI falls back to OAuth
+      delete env.GEMINI_API_KEY
     }
     
     // Add environment variable to trust MCP tools (if supported)
