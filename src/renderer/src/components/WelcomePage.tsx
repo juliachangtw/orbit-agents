@@ -270,6 +270,21 @@ export default function WelcomePage() {
       {/* ====== Hero Section ====== */}
       <section className="relative z-10 pt-20 pb-16 text-center">
         <div className="max-w-4xl mx-auto px-6">
+          {/* Product Hunt Badge */}
+          <a
+            href="https://www.producthunt.com/products/orbit-agents?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-orbit-agents"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mb-6"
+          >
+            <img
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1105023&theme=light&t=1774349230120"
+              alt="Orbit Agents - Your AI tasks, on autopilot | Product Hunt"
+              width="250"
+              height="54"
+            />
+          </a>
+
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-sm font-medium mb-8">
             <span className="w-2 h-2 rounded-full bg-blue-500 motion-safe:animate-pulse" />
