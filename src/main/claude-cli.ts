@@ -203,10 +203,10 @@ export async function executeClaudeCli(
       }
     }, 30000) // Check every 30 seconds
 
-    proc.stdout.on('data', (data: Buffer) => {
+    proc.stdout!.on('data', (data: Buffer) => {
       const text = data.toString()
       console.log('[Claude CLI] stdout chunk received, length:', text.length)
-      
+
       // Security check: Check output for dangerous operations
       const securityCheck = checkDangerousOperations(text)
       if (securityCheck.isDangerous) {
@@ -233,10 +233,10 @@ export async function executeClaudeCli(
       }
     })
 
-    proc.stderr.on('data', (data: Buffer) => {
+    proc.stderr!.on('data', (data: Buffer) => {
       const text = data.toString()
       console.log('[Claude CLI] stderr:', text.substring(0, 200))
-      
+
       // Security check: Check stderr for dangerous operations
       const securityCheck = checkDangerousOperations(text)
       if (securityCheck.isDangerous) {
