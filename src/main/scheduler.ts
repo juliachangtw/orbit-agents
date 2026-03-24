@@ -1,7 +1,7 @@
 import cron, { ScheduledTask } from 'node-cron'
 import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } from 'fs'
 import { basename, extname, dirname } from 'path'
-import { getEnabledTasks, getTaskById, createExecutionLog, updateExecutionLog, updateExecutionLogOutput } from './database'
+import { getEnabledTasks, getTaskById, createExecutionLog, updateExecutionLog, updateExecutionLogOutput, getExecutionLogWithTask } from './database'
 
 // Text file extensions that can be embedded in prompt
 const TEXT_EXTENSIONS = new Set([
@@ -29,13 +29,13 @@ function isBinaryFile(filePath: string): boolean {
 import { executeClaudeCli } from './claude-cli'
 import { executeGeminiCli } from './gemini-cli'
 import { sendTaskResultEmail } from './email'
-import type { Task, ExecutionLog, ClaudeCliResult, GeminiCliResult } from '../shared/types'
+import type { Task, ExecutionLog, ExecutionLogWithTask, ClaudeCliResult, GeminiCliResult } from '../shared/types'
 
 // Store active cron jobs
 const activeJobs: Map<string, ScheduledTask> = new Map()
 
 // Event emitter for execution events
-type ExecutionEventCallback = (log: ExecutionLog) => void
+type ExecutionEventCallback = (log: ExecutionLogWithTask) => void
 const executionCallbacks: ExecutionEventCallback[] = []
 
 export function onExecutionUpdate(callback: ExecutionEventCallback): void {
@@ -43,9 +43,11 @@ export function onExecutionUpdate(callback: ExecutionEventCallback): void {
 }
 
 function notifyExecutionUpdate(log: ExecutionLog): void {
+  // Enrich with task_name via JOIN query before sending to frontend
+  const enriched = getExecutionLogWithTask(log.id) || (log as ExecutionLogWithTask)
   for (const callback of executionCallbacks) {
     try {
-      callback(log)
+      callback(enriched)
     } catch (err) {
       // Ignore errors if window is destroyed
       console.log('[Scheduler] Failed to notify update (window may be closed):', err)

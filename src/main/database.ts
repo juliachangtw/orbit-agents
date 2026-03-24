@@ -338,6 +338,16 @@ export function getExecutionLogById(id: string): ExecutionLog | null {
   return db.prepare('SELECT * FROM execution_logs WHERE id = ?').get(id) as ExecutionLog | null
 }
 
+export function getExecutionLogWithTask(id: string): ExecutionLogWithTask | null {
+  const db = getDatabase()
+  return db.prepare(`
+    SELECT el.*, t.name as task_name
+    FROM execution_logs el
+    LEFT JOIN tasks t ON el.task_id = t.id
+    WHERE el.id = ?
+  `).get(id) as ExecutionLogWithTask | null
+}
+
 export function deleteExecutionLogs(ids: string[]): void {
   const db = getDatabase()
   const placeholders = ids.map(() => '?').join(',')
