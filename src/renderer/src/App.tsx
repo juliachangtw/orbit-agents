@@ -123,7 +123,7 @@ export default function App() {
 
         {/* Version info */}
         <div className="p-4 text-sm text-gray-400">
-          v1.0.15
+          v1.0.16
         </div>
       </div>
 
