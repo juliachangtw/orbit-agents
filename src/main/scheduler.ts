@@ -1,4 +1,5 @@
 import cron, { ScheduledTask } from 'node-cron'
+import { Notification } from 'electron'
 import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } from 'fs'
 import { basename, extname, dirname } from 'path'
 import { getEnabledTasks, getTaskById, createExecutionLog, updateExecutionLog, updateExecutionLogOutput, getExecutionLogWithTask } from './database'
@@ -123,6 +124,18 @@ function extractAndSaveKnowledge(task: Task, output: string): string {
 
   // Remove knowledge markers from output
   return output.replace(KNOWLEDGE_REGEX, '').trim()
+}
+
+function showCompletionNotification(taskName: string, success: boolean): void {
+  if (!Notification.isSupported()) return
+  try {
+    new Notification({
+      title: taskName,
+      body: success ? '✅ 執行成功' : '❌ 執行失敗'
+    }).show()
+  } catch (err) {
+    console.error('[Notification] failed:', err)
+  }
 }
 
 async function executeTask(task: Task): Promise<ExecutionLog> {
@@ -284,6 +297,7 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
     })
 
     notifyExecutionUpdate(updatedLog)
+    showCompletionNotification(task.name, result!.success)
 
     // Send email if configured (only on success — failures stay in logs)
     if (task.output_type === 'both' && task.email_to && updatedLog.status === 'success') {
@@ -303,6 +317,7 @@ async function executeTask(task: Task): Promise<ExecutionLog> {
     })
 
     notifyExecutionUpdate(updatedLog)
+    showCompletionNotification(task.name, false)
     return updatedLog
   }
 }
