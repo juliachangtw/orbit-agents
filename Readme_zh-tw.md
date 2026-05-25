@@ -101,7 +101,9 @@ xattr -cr /Applications/Orbit\ Agents.app
 
 ## 授權
 
-MIT License
+本專案採用 MIT License 授權 — 完整條文請參見 [LICENSE](./LICENSE) 檔案。
+
+Copyright (c) 2026 Muki Wu
 
 ---
 Created by Muki Wu
